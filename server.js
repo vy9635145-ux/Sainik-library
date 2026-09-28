@@ -40,13 +40,13 @@ if(!db.prepare("SELECT 1 FROM admins WHERE username=?").get(adminUser))
 
 function setting(k,d){const x=db.prepare("SELECT value FROM settings WHERE key=?").get(k);return x?x.value:d;}
 function amountForPlan(plan){
-  const map={Daily:Number(process.env.DAILY_AMOUNT||process.env.PAYMENT_AMOUNT||2000),
-    Monthly:Number(process.env.MONTHLY_AMOUNT||process.env.PAYMENT_AMOUNT||2000),
-    Quarterly:Number(process.env.QUARTERLY_AMOUNT||process.env.PAYMENT_AMOUNT||2000)};
-  return Number.isFinite(map[plan])&&map[plan]>0?map[plan]:2000;
+  const map={Daily:Number(process.env.DAILY_AMOUNT||process.env.PAYMENT_AMOUNT||500),
+    Monthly:Number(process.env.MONTHLY_AMOUNT||process.env.PAYMENT_AMOUNT||500),
+    Quarterly:Number(process.env.QUARTERLY_AMOUNT||process.env.PAYMENT_AMOUNT||500)};
+  return Number.isFinite(map[plan])&&map[plan]>0?map[plan]:500;
 }
 function expirePending(){
-  const mins=Number(process.env.PAYMENT_HOLD_MINUTES||10);
+  const mins=Number(process.env.PAYMENT_HOLD_MINUTES||20);
   const now=new Date().toISOString();
   db.prepare(`UPDATE bookings
     SET status='cancelled', cancelled_at=?, cancelled_by='SYSTEM',
@@ -63,12 +63,12 @@ function auth(req,res,next){
 }
 
 app.get("/api/config",(req,res)=>res.json({
-  totalSeats:Number(setting("total_seats","40")),
+  totalSeats:Number(setting("total_seats","43")),
   noticeTitle:setting("notice_title","Admissions & seat booking open"),
   noticeText:setting("notice_text","Contact the library for membership, timing and seat availability."),
   paymentMode:"upi_manual",
-  paymentAmount:Number(process.env.PAYMENT_AMOUNT||2000),
-  holdMinutes:Number(process.env.PAYMENT_HOLD_MINUTES||10),
+  paymentAmount:Number(process.env.PAYMENT_AMOUNT||500),
+  holdMinutes:Number(process.env.PAYMENT_HOLD_MINUTES||20),
   upiId:process.env.UPI_ID||"",
   upiName:process.env.UPI_NAME||"Sainik Library"
 }));
