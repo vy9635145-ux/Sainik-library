@@ -1,0 +1,9 @@
+services:
+  sainik-library:
+    build: .
+    container_name: sainik-library
+    ports:
+      - "3001:3000"
+    env_file:
+      - .env
+    restart: unless-stopped

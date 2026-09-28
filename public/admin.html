@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sainik Library Admin</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,Arial;background:#eef3f8;color:#152033}
+.top{background:#081a33;color:#fff;padding:16px 5%;display:flex;justify-content:space-between;align-items:center}
+.top a{color:#fff;text-decoration:none;margin-left:15px}.box{max-width:1200px;margin:28px auto;padding:0 18px}
+.card{background:#fff;padding:22px;border-radius:18px;box-shadow:0 10px 30px #00000010;margin-bottom:20px}
+input,textarea{width:100%;padding:12px;border:1px solid #d5ddea;border-radius:9px;margin:6px 0 12px;box-sizing:border-box;font:inherit}
+.btn{padding:11px 15px;border:0;border-radius:9px;background:#081a33;color:#fff;font-weight:800;cursor:pointer}.danger{background:#dc2626}.green{background:#16a34a}
+table{width:100%;border-collapse:collapse}th,td{padding:11px;border-bottom:1px solid #eee;text-align:left;font-size:13px}.status{padding:5px 8px;border-radius:20px;background:#dcfce7;color:#166534;font-weight:800}.pending{padding:5px 8px;border-radius:20px;background:#ffedd5;color:#9a3412;font-weight:800}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat{background:#fff;padding:18px;border-radius:14px}.stat b{font-size:28px;display:block}
+.login-wrap{max-width:450px;margin:80px auto}.help{color:#64748b;font-size:14px}
+@media(max-width:700px){.stats{grid-template-columns:1fr 1fr}table{display:block;overflow:auto;white-space:nowrap}.top nav{display:none}}
+</style></head>
+<body>
+<div class="top"><b>🔐 SAINIK LIBRARY ADMIN</b><nav><a href="index.html">Website</a><a href="#" onclick="logout()">Logout</a></nav></div>
+
+<div id="login" class="login-wrap">
+<div class="card"><h1>Admin Login</h1><p class="help">Login with the ADMIN_USER and ADMIN_PASSWORD from your .env configuration.</p>
+<input id="u" value="admin" placeholder="Username">
+<input id="p" type="password" placeholder="Password">
+<button class="btn" onclick="login()">Login</button>
+<p id="err" style="color:#dc2626"></p>
+</div></div>
+
+<div id="app" class="box" style="display:none">
+<h1>📊 Library Dashboard</h1>
+<div class="stats">
+<div class="stat">Active Bookings<b id="t">0</b></div>
+<div class="stat">Today<b id="d">0</b></div>
+<div class="stat">Students<b id="s">0</b></div>
+<div class="stat">Total Seats<b id="seatCount">40</b></div>
+</div>
+
+<div class="card"><h2>Active Bookings</h2>
+<p class="help">Only admin can see the complete customer details and booking history. Cancelled records are retained permanently for history.</p>
+<table><thead><tr><th>ID</th><th>Student / Father</th><th>Contact</th><th>Address</th><th>Seat</th><th>Date</th><th>Shift</th><th>Plan</th><th>Payment</th><th>Status</th><th>Action</th></tr></thead>
+<tbody id="rows"></tbody></table></div>
+
+<div class="card"><h2>📜 Complete Booking & Cancellation History</h2>
+<p class="help">This section is visible only after admin login. It includes every booking, confirmed booking, admin cancellation and automatic payment-hold expiry.</p>
+<table><thead><tr><th>ID</th><th>Student / Father</th><th>Contact</th><th>Address</th><th>Seat</th><th>Date</th><th>Shift</th><th>Payment</th><th>Status</th><th>Booked At</th><th>Cancelled At</th><th>Cancelled By</th><th>Reason</th></tr></thead>
+<tbody id="historyRows"></tbody></table></div>
+
+<div class="card"><h2>Website Notice</h2>
+<input id="title" placeholder="Notice title"><textarea id="text" placeholder="Notice text"></textarea>
+<button class="btn green" onclick="saveSettings()">Save Notice</button></div>
+</div>
+
+<script>
+let token='';
+const $=x=>document.getElementById(x);
+async function login(){
+ $('err').textContent='';
+ let r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:$('u').value,password:$('p').value})});
+ let j=await r.json();
+ if(!r.ok){$('err').textContent=j.error||'Login failed';return;}
+ token=j.token;sessionStorage.setItem('adminToken',token);
+ $('login').style.display='none';$('app').style.display='block';load();
+}
+function logout(){token='';sessionStorage.removeItem('adminToken');location.reload();}
+async function load(){
+ let r=await fetch('/api/bookings',{headers:{Authorization:'Bearer '+token}});
+ if(r.status===401)return logout();
+ let a=await r.json();
+ let active=a.filter(x=>x.status!=='cancelled');
+ $('t').textContent=active.length;
+ $('d').textContent=active.filter(x=>x.date===new Date().toISOString().slice(0,10)).length;
+ $('s').textContent=new Set(a.map(x=>x.mobile)).size;
+ let c=await fetch('/api/config'),j=await c.json();$('seatCount').textContent=j.totalSeats;
+ $('title').value=j.noticeTitle;$('text').value=j.noticeText;
+
+ $('rows').innerHTML=active.map(x=>`<tr>
+ <td>${esc(x.id)}</td>
+ <td><b>${esc(x.name)}</b><br>Father: ${esc(x.father_name||'—')}</td>
+ <td>${esc(x.mobile)}<br>${esc(x.email||'')}</td>
+ <td style="white-space:normal;min-width:220px">${esc(x.address||'—')}</td>
+ <td><b>S${x.seat}</b></td><td>${esc(x.date)}</td><td>${esc(x.shift)}</td><td>${esc(x.plan)}</td>
+ <td><b>₹${esc(x.amount||0)}</b><br><span class="${x.payment_status==='paid'?'status':'pending'}">${esc((x.payment_status||'pending').toUpperCase())}</span></td>
+ <td><span class="${x.status==='confirmed'?'status':'pending'}">${esc((x.status||'pending').toUpperCase())}</span></td>
+ <td>
+ ${x.status==='pending' && (x.payment_status==='submitted'||x.payment_status==='pending') ? `<button class="btn green" onclick="confirmPayment('${x.id}')">Confirm Payment</button> ` : ''}
+ <button class="btn danger" onclick="cancelBooking('${x.id}')">Cancel Booking</button>
+ </td></tr>`).join('') || '<tr><td colspan="11">No active bookings.</td></tr>';
+
+ $('historyRows').innerHTML=a.map(x=>`<tr>
+ <td>${esc(x.id)}</td>
+ <td><b>${esc(x.name)}</b><br>Father: ${esc(x.father_name||'—')}</td>
+ <td>${esc(x.mobile)}<br>${esc(x.email||'')}</td>
+ <td style="white-space:normal;min-width:220px">${esc(x.address||'—')}</td>
+ <td>S${esc(x.seat)}</td><td>${esc(x.date)}</td><td>${esc(x.shift)}</td>
+ <td>${esc((x.payment_status||'pending').toUpperCase())}<br>₹${esc(x.amount||0)}</td>
+ <td><span class="${x.status==='confirmed'?'status':'pending'}">${esc((x.status||'pending').toUpperCase())}</span></td>
+ <td>${esc(x.created_at||'')}</td><td>${esc(x.cancelled_at||'—')}</td>
+ <td>${esc(x.cancelled_by||'—')}</td><td>${esc(x.cancellation_reason||'—')}</td>
+ </tr>`).join('') || '<tr><td colspan="13">No history yet.</td></tr>';
+}
+function esc(v){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+async function confirmPayment(id){
+ if(!confirm('Verify the UPI payment receipt and confirm this booking?'))return;
+ let r=await fetch('/api/bookings/'+encodeURIComponent(id)+'/confirm-payment',{method:'POST',headers:{Authorization:'Bearer '+token}});
+ let j=await r.json();
+ if(!r.ok)return alert(j.error||'Could not confirm payment');
+ alert('Payment confirmed. Seat is now permanently BOOKED until you cancel it.');
+ load();
+}
+async function cancelBooking(id){
+ if(!confirm('Cancel this booking and release the seat? The record will remain in history.'))return;
+ const reason=prompt('Cancellation reason (optional):','Cancelled by admin');
+ if(reason===null)return;
+ let r=await fetch('/api/bookings/'+encodeURIComponent(id),{
+   method:'DELETE',
+   headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+   body:JSON.stringify({reason})
+ });
+ let j=await r.json();if(!r.ok)return alert(j.error||'Cancellation failed');
+ alert('Booking cancelled. Seat is available again. Cancellation is saved in history.');
+ load();
+}
+async function saveSettings(){
+ let r=await fetch('/api/settings',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({notice_title:$('title').value,notice_text:$('text').value})});
+ alert(r.ok?'Saved successfully':'Could not save');
+}
+window.addEventListener('load',()=>{let t=sessionStorage.getItem('adminToken');if(t){token=t;$('login').style.display='none';$('app').style.display='block';load();}});
+</script></body></html>
