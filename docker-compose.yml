@@ -7,7 +7,6 @@ services:
     env_file:
       - .env
     environment:
-      DB_FILE: /data/sainik.db
-    volumes:
-      - ./data:/data
+      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_SSL: ${DATABASE_SSL:-true}
     restart: unless-stopped
