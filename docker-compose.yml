@@ -6,4 +6,8 @@ services:
       - "3001:3000"
     env_file:
       - .env
+    environment:
+      DB_FILE: /data/sainik.db
+    volumes:
+      - ./data:/data
     restart: unless-stopped

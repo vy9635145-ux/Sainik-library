@@ -2,125 +2,49 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sainik Library Admin</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,Arial;background:#eef3f8;color:#152033}
-.top{background:#081a33;color:#fff;padding:16px 5%;display:flex;justify-content:space-between;align-items:center}
-.top a{color:#fff;text-decoration:none;margin-left:15px}.box{max-width:1200px;margin:28px auto;padding:0 18px}
-.card{background:#fff;padding:22px;border-radius:18px;box-shadow:0 10px 30px #00000010;margin-bottom:20px}
-input,textarea{width:100%;padding:12px;border:1px solid #d5ddea;border-radius:9px;margin:6px 0 12px;box-sizing:border-box;font:inherit}
-.btn{padding:11px 15px;border:0;border-radius:9px;background:#081a33;color:#fff;font-weight:800;cursor:pointer}.danger{background:#dc2626}.green{background:#16a34a}
-table{width:100%;border-collapse:collapse}th,td{padding:11px;border-bottom:1px solid #eee;text-align:left;font-size:13px}.status{padding:5px 8px;border-radius:20px;background:#dcfce7;color:#166534;font-weight:800}.pending{padding:5px 8px;border-radius:20px;background:#ffedd5;color:#9a3412;font-weight:800}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat{background:#fff;padding:18px;border-radius:14px}.stat b{font-size:28px;display:block}
-.login-wrap{max-width:450px;margin:80px auto}.help{color:#64748b;font-size:14px}
-@media(max-width:700px){.stats{grid-template-columns:1fr 1fr}table{display:block;overflow:auto;white-space:nowrap}.top nav{display:none}}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:system-ui,Arial,sans-serif;background:#eef3f8;color:#152033;overflow-x:hidden}.top{background:#081a33;color:#fff;padding:15px clamp(14px,5vw,70px);display:flex;justify-content:space-between;align-items:center;gap:15px;position:sticky;top:0;z-index:20}.top a{color:#fff;text-decoration:none;margin-left:15px}.box{width:min(1400px,100%);margin:24px auto;padding:0 clamp(12px,3vw,28px)}.card{background:#fff;padding:clamp(16px,2.5vw,24px);border-radius:18px;box-shadow:0 10px 30px #00000010;margin-bottom:20px;min-width:0;overflow:hidden}.card h2{margin-top:0}.input-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.full{grid-column:1/-1}input,textarea,select{width:100%;padding:12px;border:1px solid #d5ddea;border-radius:9px;margin:6px 0 12px;box-sizing:border-box;font:inherit;background:#fff;min-width:0}textarea{min-height:100px;resize:vertical}.btn{padding:10px 14px;border:0;border-radius:9px;background:#081a33;color:#fff;font-weight:800;cursor:pointer}.btn:hover{opacity:.9}.danger{background:#dc2626}.green{background:#16a34a}.muted,.help{color:#64748b;font-size:14px}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.stat{background:#fff;padding:18px;border-radius:14px;min-width:0}.stat b{font-size:28px;display:block}.login-wrap{width:min(450px,calc(100% - 24px));margin:60px auto}.table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #edf1f5;border-radius:12px}.table-wrap table{min-width:1100px}table{width:100%;border-collapse:collapse}th,td{padding:11px;border-bottom:1px solid #eee;text-align:left;font-size:13px;vertical-align:top}th{background:#f8fafc;position:sticky;top:0;z-index:1}.status{padding:5px 8px;border-radius:20px;background:#dcfce7;color:#166534;font-weight:800}.pending{padding:5px 8px;border-radius:20px;background:#ffedd5;color:#9a3412;font-weight:800}.success-form{border:2px dashed #dbe3ef;border-radius:14px;padding:16px;background:#f8fafc}.photo-preview{width:110px;height:130px;border-radius:12px;object-fit:cover;background:#e2e8f0;display:block;margin:5px 0 12px}.student-admin-grid{display:grid;grid-template-columns:minmax(280px,1fr) minmax(0,2fr);gap:20px}.student-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}.student-card{border:1px solid #e2e8f0;border-radius:15px;padding:14px;background:#fff;min-width:0}.student-card img{width:82px;height:96px;border-radius:10px;object-fit:cover;float:left;margin:0 12px 8px 0;background:#e2e8f0}.student-card:after{content:"";display:block;clear:both}.student-card h3{margin:0 0 5px;overflow-wrap:anywhere}.student-card p{font-size:13px;margin:5px 0;color:#526174;overflow-wrap:anywhere}.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.pill{display:inline-block;background:#eff6ff;color:#1d4ed8;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:800}.top-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.toast{position:fixed;right:18px;bottom:18px;background:#081a33;color:#fff;padding:12px 16px;border-radius:10px;display:none;z-index:50;max-width:min(420px,calc(100% - 36px))}
+@media(max-width:900px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.student-admin-grid{grid-template-columns:1fr}.input-grid{grid-template-columns:1fr}.full{grid-column:auto}}
+@media(max-width:600px){.top{align-items:flex-start}.top nav{display:none}.box{margin-top:15px}.stats{grid-template-columns:1fr 1fr}.stat{padding:14px}.stat b{font-size:23px}.card{border-radius:14px}.login-wrap{margin-top:30px}.student-list{grid-template-columns:1fr}}
 </style></head>
 <body>
 <div class="top"><b>🔐 SAINIK LIBRARY ADMIN</b><nav><a href="index.html">Website</a><a href="#" onclick="logout()">Logout</a></nav></div>
+<div id="login" class="login-wrap"><div class="card"><h1>Admin Login</h1><p class="help">Login with the ADMIN_USER and ADMIN_PASSWORD from your .env configuration.</p><input id="u" value="admin" placeholder="Username"><input id="p" type="password" placeholder="Password"><button class="btn" onclick="login()">Login</button><p id="err" style="color:#dc2626"></p></div></div>
+<div id="app" class="box" style="display:none">
+<div class="top-actions"><div><h1 style="margin:0">📊 Library Dashboard</h1><p class="help">All controls are admin-only and responsive on mobile, tablet and desktop.</p></div></div>
+<div class="stats"><div class="stat">Active Bookings<b id="t">0</b></div><div class="stat">Today<b id="d">0</b></div><div class="stat">Students<b id="s">0</b></div><div class="stat">Total Seats<b id="seatCount">40</b></div></div>
 
-<div id="login" class="login-wrap">
-<div class="card"><h1>Admin Login</h1><p class="help">Login with the ADMIN_USER and ADMIN_PASSWORD from your .env configuration.</p>
-<input id="u" value="admin" placeholder="Username">
-<input id="p" type="password" placeholder="Password">
-<button class="btn" onclick="login()">Login</button>
-<p id="err" style="color:#dc2626"></p>
+<div class="card"><h2>🏆 Success Students Showcase</h2><p class="help">Add unlimited selected/success students. Their photo and complete public bio will appear above Premium Facilities on the main website as an automatic slider.</p>
+<div class="student-admin-grid">
+<div class="success-form"><h3 id="formTitle">Add Success Student</h3><input type="hidden" id="studentId"><label>Student Name</label><input id="sn" placeholder="Student name"><label>Photo</label><input id="sp" type="file" accept="image/*" onchange="previewPhoto()"><img id="preview" class="photo-preview" alt="Photo preview" style="display:none"><label>Bio Data</label><textarea id="sbio" placeholder="Short bio, achievement, exam, rank, course, etc."></textarea><div class="input-grid"><div><label>Selected / Qualified For</label><input id="sfor" placeholder="JEE / NEET / UPSC / College etc."></div><div><label>Selected At / Place</label><input id="splace" placeholder="IIT Delhi / BHU / NIT etc."></div><div><label>Library From</label><input id="sfrom" type="date"></div><div><label>Library To</label><input id="sto" type="date"></div></div><button class="btn green" onclick="saveStudent()">Save Student</button> <button id="cancelEdit" class="btn" style="display:none" onclick="resetStudentForm()">Cancel Edit</button><p id="photoHelp" class="help">For fast loading, use a normal JPG/PNG photo and keep it reasonably small.</p></div>
+<div><h3 style="margin-top:0">Current Success Students</h3><div id="studentList" class="student-list"></div></div>
 </div></div>
 
-<div id="app" class="box" style="display:none">
-<h1>📊 Library Dashboard</h1>
-<div class="stats">
-<div class="stat">Active Bookings<b id="t">0</b></div>
-<div class="stat">Today<b id="d">0</b></div>
-<div class="stat">Students<b id="s">0</b></div>
-<div class="stat">Total Seats<b id="seatCount">40</b></div>
-</div>
+<div class="card"><h2>Active Bookings</h2><p class="help">Complete customer details are visible only to admin. A booking remains active until admin cancellation.</p><div class="table-wrap"><table><thead><tr><th>ID</th><th>Student / Father</th><th>Contact</th><th>Address</th><th>Seat</th><th>Date</th><th>Shift</th><th>Plan</th><th>Payment</th><th>Status</th><th>Action</th></tr></thead><tbody id="rows"></tbody></table></div></div>
 
-<div class="card"><h2>Active Bookings</h2>
-<p class="help">Only admin can see the complete customer details and booking history. Cancelled records are retained permanently for history.</p>
-<table><thead><tr><th>ID</th><th>Student / Father</th><th>Contact</th><th>Address</th><th>Seat</th><th>Date</th><th>Shift</th><th>Plan</th><th>Payment</th><th>Status</th><th>Action</th></tr></thead>
-<tbody id="rows"></tbody></table></div>
+<div class="card"><h2>📜 Complete Booking & Cancellation History</h2><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px"><label><b>Month:</b> <select id="historyMonth" onchange="renderHistory()"><option value="all">All months</option></select></label><button class="btn" onclick="document.getElementById('historyMonth').value='all';renderHistory()">Show All</button></div><p class="help">Admin decides which cancelled records to keep or permanently delete.</p><div class="table-wrap"><table><thead><tr><th>ID</th><th>Student / Father</th><th>Contact</th><th>Address</th><th>Seat</th><th>Date</th><th>Shift</th><th>Payment</th><th>Status</th><th>Booked At</th><th>Cancelled At</th><th>Cancelled By</th><th>Reason</th><th>History Action</th></tr></thead><tbody id="historyRows"></tbody></table></div></div>
 
-<div class="card"><h2>📜 Complete Booking & Cancellation History</h2>
-<p class="help">This section is visible only after admin login. It includes every booking, confirmed booking, admin cancellation and automatic payment-hold expiry.</p>
-<table><thead><tr><th>ID</th><th>Student / Father</th><th>Contact</th><th>Address</th><th>Seat</th><th>Date</th><th>Shift</th><th>Payment</th><th>Status</th><th>Booked At</th><th>Cancelled At</th><th>Cancelled By</th><th>Reason</th></tr></thead>
-<tbody id="historyRows"></tbody></table></div>
-
-<div class="card"><h2>Website Notice</h2>
-<input id="title" placeholder="Notice title"><textarea id="text" placeholder="Notice text"></textarea>
-<button class="btn green" onclick="saveSettings()">Save Notice</button></div>
-</div>
-
+<div class="card"><h2>Website Notice</h2><input id="title" placeholder="Notice title"><textarea id="text" placeholder="Notice text"></textarea><button class="btn green" onclick="saveSettings()">Save Notice</button></div>
+</div><div id="toast" class="toast"></div>
 <script>
-let token='';
-const $=x=>document.getElementById(x);
-async function login(){
- $('err').textContent='';
- let r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:$('u').value,password:$('p').value})});
- let j=await r.json();
- if(!r.ok){$('err').textContent=j.error||'Login failed';return;}
- token=j.token;sessionStorage.setItem('adminToken',token);
- $('login').style.display='none';$('app').style.display='block';load();
-}
-function logout(){token='';sessionStorage.removeItem('adminToken');location.reload();}
-async function load(){
- let r=await fetch('/api/bookings',{headers:{Authorization:'Bearer '+token}});
- if(r.status===401)return logout();
- let a=await r.json();
- let active=a.filter(x=>x.status!=='cancelled');
- $('t').textContent=active.length;
- $('d').textContent=active.filter(x=>x.date===new Date().toISOString().slice(0,10)).length;
- $('s').textContent=new Set(a.map(x=>x.mobile)).size;
- let c=await fetch('/api/config'),j=await c.json();$('seatCount').textContent=j.totalSeats;
- $('title').value=j.noticeTitle;$('text').value=j.noticeText;
-
- $('rows').innerHTML=active.map(x=>`<tr>
- <td>${esc(x.id)}</td>
- <td><b>${esc(x.name)}</b><br>Father: ${esc(x.father_name||'—')}</td>
- <td>${esc(x.mobile)}<br>${esc(x.email||'')}</td>
- <td style="white-space:normal;min-width:220px">${esc(x.address||'—')}</td>
- <td><b>S${x.seat}</b></td><td>${esc(x.date)}</td><td>${esc(x.shift)}</td><td>${esc(x.plan)}</td>
- <td><b>₹${esc(x.amount||0)}</b><br><span class="${x.payment_status==='paid'?'status':'pending'}">${esc((x.payment_status||'pending').toUpperCase())}</span></td>
- <td><span class="${x.status==='confirmed'?'status':'pending'}">${esc((x.status||'pending').toUpperCase())}</span></td>
- <td>
- ${x.status==='pending' && (x.payment_status==='submitted'||x.payment_status==='pending') ? `<button class="btn green" onclick="confirmPayment('${x.id}')">Confirm Payment</button> ` : ''}
- <button class="btn danger" onclick="cancelBooking('${x.id}')">Cancel Booking</button>
- </td></tr>`).join('') || '<tr><td colspan="11">No active bookings.</td></tr>';
-
- $('historyRows').innerHTML=a.map(x=>`<tr>
- <td>${esc(x.id)}</td>
- <td><b>${esc(x.name)}</b><br>Father: ${esc(x.father_name||'—')}</td>
- <td>${esc(x.mobile)}<br>${esc(x.email||'')}</td>
- <td style="white-space:normal;min-width:220px">${esc(x.address||'—')}</td>
- <td>S${esc(x.seat)}</td><td>${esc(x.date)}</td><td>${esc(x.shift)}</td>
- <td>${esc((x.payment_status||'pending').toUpperCase())}<br>₹${esc(x.amount||0)}</td>
- <td><span class="${x.status==='confirmed'?'status':'pending'}">${esc((x.status||'pending').toUpperCase())}</span></td>
- <td>${esc(x.created_at||'')}</td><td>${esc(x.cancelled_at||'—')}</td>
- <td>${esc(x.cancelled_by||'—')}</td><td>${esc(x.cancellation_reason||'—')}</td>
- </tr>`).join('') || '<tr><td colspan="13">No history yet.</td></tr>';
-}
-function esc(v){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
-async function confirmPayment(id){
- if(!confirm('Verify the UPI payment receipt and confirm this booking?'))return;
- let r=await fetch('/api/bookings/'+encodeURIComponent(id)+'/confirm-payment',{method:'POST',headers:{Authorization:'Bearer '+token}});
- let j=await r.json();
- if(!r.ok)return alert(j.error||'Could not confirm payment');
- alert('Payment confirmed. Seat is now permanently BOOKED until you cancel it.');
- load();
-}
-async function cancelBooking(id){
- if(!confirm('Cancel this booking and release the seat? The record will remain in history.'))return;
- const reason=prompt('Cancellation reason (optional):','Cancelled by admin');
- if(reason===null)return;
- let r=await fetch('/api/bookings/'+encodeURIComponent(id),{
-   method:'DELETE',
-   headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
-   body:JSON.stringify({reason})
- });
- let j=await r.json();if(!r.ok)return alert(j.error||'Cancellation failed');
- alert('Booking cancelled. Seat is available again. Cancellation is saved in history.');
- load();
-}
-async function saveSettings(){
- let r=await fetch('/api/settings',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({notice_title:$('title').value,notice_text:$('text').value})});
- alert(r.ok?'Saved successfully':'Could not save');
-}
-window.addEventListener('load',()=>{let t=sessionStorage.getItem('adminToken');if(t){token=t;$('login').style.display='none';$('app').style.display='block';load();}});
+let token='',allBookings=[],students=[],pendingPhoto='';const $=x=>document.getElementById(x);
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+function toast(msg){$('toast').textContent=msg;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',2500)}
+async function login(){ $('err').textContent='';let r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:$('u').value,password:$('p').value})});let j=await r.json();if(!r.ok){$('err').textContent=j.error||'Login failed';return}token=j.token;sessionStorage.setItem('adminToken',token);$('login').style.display='none';$('app').style.display='block';load()}
+function logout(){token='';sessionStorage.removeItem('adminToken');location.reload()}
+async function api(url,opt={}){opt.headers={...(opt.headers||{}),Authorization:'Bearer '+token};let r=await fetch(url,opt);if(r.status===401){logout();throw new Error('Unauthorized')}let j=await r.json();if(!r.ok)throw new Error(j.error||'Request failed');return j}
+async function load(){try{let a=await api('/api/bookings');allBookings=a;let active=a.filter(x=>x.status!=='cancelled');$('t').textContent=active.length;$('d').textContent=active.filter(x=>x.date===new Date().toISOString().slice(0,10)).length;$('s').textContent=new Set(a.map(x=>x.mobile)).size;let c=await fetch('/api/config'),j=await c.json();$('seatCount').textContent=j.totalSeats;$('title').value=j.noticeTitle;$('text').value=j.noticeText;renderBookings(active);renderMonthOptions(a);renderHistory();await loadStudents()}catch(e){alert(e.message)}}
+function renderBookings(active){$('rows').innerHTML=active.map(x=>`<tr><td>${esc(x.id)}</td><td><b>${esc(x.name)}</b><br>Father: ${esc(x.father_name||'—')}</td><td>${esc(x.mobile)}<br>${esc(x.email||'')}</td><td style="white-space:normal;min-width:220px">${esc(x.address||'—')}</td><td><b>S${esc(x.seat)}</b></td><td>${esc(x.date)}</td><td>${esc(x.shift)}</td><td>${esc(x.plan)}</td><td><b>₹${esc(x.amount||0)}</b><br><span class="${x.payment_status==='paid'?'status':'pending'}">${esc((x.payment_status||'pending').toUpperCase())}</span></td><td><span class="status">BOOKED</span></td><td>${x.payment_status!=='paid'?`<button class="btn green" onclick="confirmPayment('${esc(x.id)}')">Confirm Payment</button>`:''} <button class="btn danger" onclick="cancelBooking('${esc(x.id)}')">Cancel Booking</button></td></tr>`).join('')||'<tr><td colspan="11">No active bookings.</td></tr>'}
+function renderMonthOptions(a){const sel=$('historyMonth'),cur=sel.value||'all',months=[...new Set(a.map(x=>String(x.date||x.created_at||'').slice(0,7)).filter(Boolean))].sort().reverse();sel.innerHTML='<option value="all">All months</option>'+months.map(m=>`<option value="${m}">${m}</option>`).join('');sel.value=months.includes(cur)||cur==='all'?cur:'all'}
+function renderHistory(){const selected=$('historyMonth').value||'all',list=selected==='all'?allBookings:allBookings.filter(x=>String(x.date||x.created_at||'').slice(0,7)===selected);$('historyRows').innerHTML=list.map(x=>`<tr><td>${esc(x.id)}</td><td><b>${esc(x.name)}</b><br>Father: ${esc(x.father_name||'—')}</td><td>${esc(x.mobile)}<br>${esc(x.email||'')}</td><td>${esc(x.address||'—')}</td><td>S${esc(x.seat)}</td><td>${esc(x.date)}</td><td>${esc(x.shift)}</td><td>${esc((x.payment_status||'pending').toUpperCase())}<br>₹${esc(x.amount||0)}</td><td>${x.status==='cancelled'?'<span class="pending">CANCELLED</span>':'<span class="status">BOOKED</span>'}</td><td>${esc(x.created_at||'')}</td><td>${esc(x.cancelled_at||'—')}</td><td>${esc(x.cancelled_by||'—')}</td><td>${esc(x.cancellation_reason||'—')}</td><td>${x.status==='cancelled'?`<button class="btn danger" onclick="deleteHistory('${esc(x.id)}')">Delete History</button>`:'—'}</td></tr>`).join('')||'<tr><td colspan="14">No history for this month.</td></tr>'}
+async function confirmPayment(id){if(!confirm('Verify payment? Seat remains permanently booked until admin cancellation.'))return;try{await api('/api/bookings/'+encodeURIComponent(id)+'/confirm-payment',{method:'POST'});toast('Payment verified');load()}catch(e){alert(e.message)}}
+async function cancelBooking(id){if(!confirm('Cancel this booking and release the seat? Record remains in history.'))return;let reason=prompt('Cancellation reason:','Cancelled by admin');if(reason===null)return;try{await api('/api/bookings/'+encodeURIComponent(id),{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({reason})});toast('Booking cancelled');load()}catch(e){alert(e.message)}}
+async function deleteHistory(id){if(!confirm('Permanently delete this history record?'))return;try{await api('/api/history/'+encodeURIComponent(id),{method:'DELETE'});toast('History deleted');load()}catch(e){alert(e.message)}}
+async function saveSettings(){try{await api('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({notice_title:$('title').value,notice_text:$('text').value})});toast('Notice saved')}catch(e){alert(e.message)}}
+function previewPhoto(){const f=$('sp').files[0];if(!f)return; if(f.size>2500000){alert('Please choose an image under 2.5 MB');$('sp').value='';return}const r=new FileReader();r.onload=()=>{pendingPhoto=r.result;$('preview').src=pendingPhoto;$('preview').style.display='block'};r.readAsDataURL(f)}
+function resetStudentForm(){$('studentId').value='';$('sn').value='';$('sbio').value='';$('sfor').value='';$('splace').value='';$('sfrom').value='';$('sto').value='';$('sp').value='';pendingPhoto='';$('preview').style.display='none';$('formTitle').textContent='Add Success Student';$('cancelEdit').style.display='none'}
+function editStudent(id){const s=students.find(x=>String(x.id)===String(id));if(!s)return;$('studentId').value=s.id;$('sn').value=s.name||'';$('sbio').value=s.bio||'';$('sfor').value=s.selected_for||'';$('splace').value=s.selected_place||'';$('sfrom').value=s.library_from||'';$('sto').value=s.library_to||'';pendingPhoto=s.photo||'';if(pendingPhoto){$('preview').src=pendingPhoto;$('preview').style.display='block'}else $('preview').style.display='none';$('formTitle').textContent='Edit Success Student';$('cancelEdit').style.display='inline-block';window.scrollTo({top:document.querySelector('.success-form').getBoundingClientRect().top+scrollY-80,behavior:'smooth'})}
+async function saveStudent(){const name=$('sn').value.trim();if(!name)return alert('Student name is required');const body={name,photo:pendingPhoto,bio:$('sbio').value,selectedFor:$('sfor').value,selectedPlace:$('splace').value,libraryFrom:$('sfrom').value,libraryTo:$('sto').value};try{const id=$('studentId').value;if(id)await api('/api/success-students/'+encodeURIComponent(id),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});else await api('/api/success-students',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});toast(id?'Student updated':'Student added');resetStudentForm();loadStudents()}catch(e){alert(e.message)}}
+async function loadStudents(){students=await fetch('/api/success-students').then(r=>r.json());$('studentList').innerHTML=students.map(s=>`<div class="student-card">${s.photo?`<img src="${esc(s.photo)}" alt="${esc(s.name)}">`:''}<h3>${esc(s.name)}</h3><span class="pill">${esc(s.selected_for||'Success Student')}</span><p>${esc(s.bio||'No bio added.')}</p><p><b>Selected:</b> ${esc(s.selected_place||'—')}</p><p><b>Library:</b> ${esc(s.library_from||'—')} → ${esc(s.library_to||'—')}</p><div class="actions"><button class="btn" onclick="editStudent('${esc(s.id)}')">Edit</button><button class="btn danger" onclick="deleteStudent('${esc(s.id)}')">Delete</button></div></div>`).join('')||'<p class="help">No success students added yet.</p>'}
+async function deleteStudent(id){if(!confirm('Delete this success student from the website?'))return;try{await api('/api/success-students/'+encodeURIComponent(id),{method:'DELETE'});toast('Student removed');loadStudents()}catch(e){alert(e.message)}}
+window.addEventListener('load',()=>{let t=sessionStorage.getItem('adminToken');if(t){token=t;$('login').style.display='none';$('app').style.display='block';load()}});
 </script></body></html>
