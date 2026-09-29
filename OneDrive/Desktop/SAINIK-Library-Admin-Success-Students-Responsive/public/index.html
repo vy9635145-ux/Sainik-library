@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SAINIK LIBRARY | Self Study Point</title>
+
+<style>
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;font-family:system-ui,Arial,sans-serif;background:#f5f7fb;color:#152033}
+header{background:#081a33;color:#fff;padding:15px 6%;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:20;box-shadow:0 4px 18px #0003}
+header a{color:#fff;margin-left:18px;text-decoration:none;font-weight:700}
+.hero{background:linear-gradient(135deg,#081a33,#15538e);color:#fcfaf6;padding:78px 6%}
+.hero h1{font-size:clamp(40px,7vw,72px);margin:10px 0;line-height:1.02;}.gold{color:#f2b84b}
+.wrap{max-width:1100px;margin:auto}section{padding:65px 6%}h2{font-size:54px;color:#081a33}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.card{background:#fff;padding:22px;border-radius:18px;box-shadow:0 10px 30px #00000010}
+.btn{display:inline-block;border:0;border-radius:10px;padding:12px 16px;font-weight:800;cursor:pointer;background:#081a33;color:#fff;text-decoration:none}
+.goldbtn{background:#fad16a;color:#172033}.greenbtn{background:#16a34a}.bluebtn{background:#2563eb}
+.seats{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin:15px 0}
+.seat{padding:13px;border:2px solid #86efac;border-radius:9px;background:#dcfce7;color:#166534;font-weight:800;cursor:pointer}
+.seat:hover{transform:translateY(-1px)}.seat.held{background:#fb923c;border-color:#ea580c;color:#fff;cursor:not-allowed}.seat.booked{background:#ef4444;border-color:#dc2626;color:#fff;cursor:not-allowed}
+.seat.sel{background:#f2b84b;border-color:#d99b15;color:#172033}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:14px;margin:10px 0}.dot{width:13px;height:13px;border-radius:4px;display:inline-block;margin-right:5px;vertical-align:-2px}
+.free{background:#dcfce7}.taken{background:#ef4444}.chosen{background:#f2b84b}
+input,select,textarea{padding:12px;border:1px solid #d5ddea;border-radius:9px;width:100%;margin:5px 0 12px;font:inherit;background:#fff}.form{max-width:520px}
+.notice{border-left:5px solid #f2b84b}.muted{color:#68778b}
+.contact{background:linear-gradient(135deg,#081a33,#123c67);color:#fff;overflow:hidden}
+.contact h2{color:#fff}.contact-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:20px}
+.contact-card{background:#ffffff12;border:1px solid #ffffff25;padding:25px;border-radius:18px;backdrop-filter:blur(8px)}
+.contact-card a{color:#fd3a0a;font-weight:800;text-decoration:none}.contact-item{padding:13px 0;border-bottom:1px solid #ffffff20}.contact-item:last-child{border:0}
+.payment{margin-top:18px;padding:18px;border-radius:14px;background:#f8fafc;border:1px solid #e2e8f0}
+.payment-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.payment small{display:block;margin-top:10px;color:#64748b}.paybox{display:grid;grid-template-columns:260px 1fr;gap:20px;align-items:center;margin-top:15px}.qrwrap{background:#fff;border:1px solid #dbe3ef;border-radius:14px;padding:12px;text-align:center}.qrwrap img{width:100%;max-width:230px;display:block;margin:auto}.upi-copy{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.upi-copy code{background:#eef2f7;padding:8px 10px;border-radius:8px;font-weight:700}.copybtn{padding:8px 10px;border:0;border-radius:8px;background:#e2e8f0;font-weight:800;cursor:pointer}.pay-note{padding:10px 12px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;color:#9a3412;font-size:13px;margin-top:12px}
+
+.success-showcase{background:linear-gradient(180deg,#f8fafc,#fff);padding:42px 6%;overflow:hidden}.success-head{text-align:center;margin-bottom:20px}.success-head h2{margin:0 0 8px}.success-viewport{max-width:1100px;margin:auto;overflow:hidden;border-radius:20px}.success-track{display:flex;transition:transform .65s ease;will-change:transform}.success-slide{min-width:100%;padding:4px}.success-card{display:grid;grid-template-columns:180px 1fr;gap:24px;align-items:center;background:#fff;border:1px solid #e2e8f0;border-radius:20px;padding:22px;box-shadow:0 12px 30px #00000010;min-height:230px}.success-card img{width:180px;height:210px;object-fit:cover;border-radius:16px;background:#e2e8f0}.success-card h3{font-size:28px;margin:0 0 8px;color:#081a33}.success-badge{display:inline-block;background:#fef3c7;color:#92400e;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800;margin-bottom:10px}.success-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px}.success-meta div{background:#f8fafc;border-radius:10px;padding:9px;font-size:13px}.success-dots{display:flex;justify-content:center;gap:7px;margin-top:15px}.success-dot{width:9px;height:9px;border:0;border-radius:50%;background:#cbd5e1;cursor:pointer}.success-dot.active{background:#f2b84b;transform:scale(1.25)}
+@media(max-width:700px){.success-showcase{padding:38px 5%}.success-card{grid-template-columns:95px 1fr;gap:14px;padding:15px;min-height:190px}.success-card img{width:95px;height:120px;border-radius:12px}.success-card h3{font-size:21px}.success-meta{grid-template-columns:1fr}.success-card p{font-size:14px}}
+.modal{position:fixed;inset:0;background:#0009;display:none;place-items:center;padding:20px;z-index:50}.modal.on{display:grid}
+.modal>div{background:#fff;padding:25px;border-radius:18px;width:min(540px,100%);max-height:90vh;overflow:auto}
+.receipt{background:#f8fafc;padding:15px;border-radius:12px;line-height:1.8}.close{background:#64748b;margin-left:8px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.seats{grid-template-columns:repeat(4,1fr)}header nav{display:none}.contact-grid{grid-template-columns:1fr}.payment-buttons{grid-template-columns:1fr}.payment-buttons .btn{width:100%;text-align:center}.paybox{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+<b>📚 SAINIK LIBRARY</b>
+<nav><a href="#features">Features</a><a href="#booking">Book Seat</a><a href="#membership">Membership</a><a href="#contact">Contact</a><a href="admin.html">Admin</a></nav>
+</header>
+
+<section class="hero"><div class="wrap">
+<h1><p >PREMIUM SELF STUDY POINT</p><span class="gold">SAINIK LIBRARY & SELF STUDY POINT</span></h1>
+<p>Full AC environment • Silent study • Wi‑Fi • Charging • Online seat booking</p>
+<a class="btn goldbtn" href="#booking">Book Your Seat</a>
+</div></section>
+
+
+<section id="success-students" class="success-showcase"><div class="wrap"><div class="success-head"><h2>🏆 Our Successful Students</h2><p class="muted">Students who prepared with Sainik Library and achieved their goal.</p></div>
+  <div id="successViewport" class="success-viewport"><div id="successTrack" class="success-track"></div></div><div id="successDots" class="success-dots"></div></div></section>
+
+<section id="features"><div class="wrap"><h2>Premium Facilities</h2><div class="grid">
+<div class="card">❄️ <h3>Full AC</h3><p class="muted">Comfortable study environment.</p></div>
+<div class="card">🤫 <h3>Silent Zone</h3><p class="muted">Distraction-free preparation.</p></div>
+<div class="card">📶 <h3>High-Speed Wi‑Fi</h3><p class="muted">For online classes and tests.</p></div>
+<div class="card">🔌 <h3>Charging</h3><p class="muted">Power at your study seat.</p></div>
+<div class="card">📚 <h3>Study Resources</h3><p class="muted">Competitive exam material.</p></div>
+<div class="card">🛡️ <h3>Safe & Clean</h3><p class="muted">Organized study space.</p></div>
+</div></div></section>
+
+<section id="booking"><div class="wrap"><h2>Online Seat Booking</h2>
+<div class="card">
+<label>Date</label><input id="date" type="date">
+<label>Shift</label><select id="shift"><option>Morning</option><option>Evening</option><option>Full Day</option></select>
+<div class="legend"><span><i class="dot free"></i>Available</span><span><i class="dot taken"></i>Booked</span><span><i class="dot" style="background:#fb923c"></i>Payment Pending</span><span><i class="dot chosen"></i>Selected</span></div>
+<div id="seats" class="seats"></div>
+<p>Selected: <b id="selected">None</b></p>
+<div class="form">
+<input id="name" placeholder="Student name" required>
+<input id="fatherName" placeholder="Father name" required>
+<input id="mobile" maxlength="10" inputmode="numeric" placeholder="10-digit mobile" required>
+<input id="address" placeholder="Full address" required>
+<textarea id="email" placeholder="Email (optional)" style="min-height:80px"></textarea>
+<select id="plan"><option>Daily</option><option>Monthly</option><option>Quarterly</option></select>
+<button class="btn" onclick="book()">Confirm Booking</button>
+</div>
+<p class="muted">🔒 🔒 A booked seat stays RED and locked for this SHIFT on every date. Only the admin can cancel it; other shifts remain independently available.</p>
+</div></div></section>
+
+<section id="membership"><div class="wrap"><h2>Membership</h2><div class="grid">
+<div class="card"><h3>Daily</h3><p>Flexible daily access</p></div>
+<div class="card"><h3>Monthly</h3><p>Regular study membership</p></div>
+<div class="card"><h3>Quarterly</h3><p>Long-term preparation</p></div>
+</div><p class="muted">Fees can be configured by the library.</p></div></section>
+
+<section><div class="wrap"><div class="card notice"><h2 id="nt">Admissions Open</h2><p id="nx">Contact the library for current details.</p></div></div></section>
+
+<section id="contact" class="contact"><div class="wrap">
+<h2>Contact Sainik Library</h2>
+<div class="contact-grid">
+<div class="contact-card">
+<h3>📚 SAINIK LIBRARY AND SELF STUDY POINT</h3>
+<div class="contact-item">📍 <b>Address</b><br>Basantpur Chauraha, Sindhora, Varanasi</div>
+<div class="contact-item">📞 <b>Call</b><br><a href="tel:8765196654">8765196654</a></div>
+<div class="contact-item">📞 <b>Call</b><br><a href="tel:7985136328">7985136328</a></div>
+<div class="contact-item">💬 <b>WhatsApp</b><br><a href="https://wa.me/918765196654" target="_blank">Chat on WhatsApp</a></div>
+</div>
+<div class="contact-card">
+<h3>Need Help?</h3><p>Seat availability, membership, timing ya booking related help ke liye contact karein.</p>
+<a class="btn goldbtn" href="tel:8765196654">📞 Call Now</a>
+<a class="btn" href="https://wa.me/918765196654" target="_blank">💬 WhatsApp</a>
+</div>
+</div></div></section>
+
+<div id="modal" class="modal"><div>
+<h2>Booking Confirmed ✅</h2>
+<p class="muted">Your seat is permanently booked until an admin cancels it.</p>
+<div id="receipt" class="receipt"></div>
+<div class="payment">
+<h3>💳 Pay via UPI</h3>
+<p>Mobile par Google Pay/PhonePe button use karein. Laptop par QR scan karein.</p>
+<div class="payment-buttons">
+<button id="gpay" class="btn bluebtn" onclick="openUpi('gpay')">📱 Google Pay</button>
+<a id="phonepe" class="btn greenbtn" href="#" onclick="openUpi('phonepe');return false">📱 PhonePe</a>
+<a id="upi" class="btn" href="#" onclick="openUpi('upi');return false">📲 Other UPI</a>
+<button id="paidBtn" class="btn goldbtn" onclick="markPaid()">✅ I Have Paid</button>
+
+</div>
+<p id="paymentStatus" class="muted">Payment pending. Your seat is already permanently booked. Complete payment and click “I Have Paid”; admin will verify the payment.</p>
+<div class="paybox">
+  <div class="qrwrap"><img id="paymentQr" alt="UPI payment QR code"><b>Scan with any UPI app</b></div>
+  <div>
+    <p><b>Payable amount:</b> ₹<span id="payAmount">0</span></p>
+    <div class="upi-copy"><code id="upiText">Loading...</code><button class="copybtn" onclick="copyUpi()">Copy UPI ID</button></div>
+    <p class="muted">Receiver: <b id="upiName">Sainik Library</b></p>
+    <div class="pay-note">🔐 Google Pay/PhonePe UPI payment is verified by the library admin. Your seat is permanently BOOKED as soon as the booking is created. Payment is verified separately by the admin. The booking will stay active until the admin cancels it.</div>
+  </div>
+</div>
+</div>
+<br>
+<a id="wa" class="btn" target="_blank">Send Booking on WhatsApp</a>
+<button class="btn close" onclick="modal.classList.remove('on')">Close</button>
+</div></div>
+
+<script>
+let selected=null,booking=null,config={};
+const $=x=>document.getElementById(x);
+let today=new Date();today.setMinutes(today.getMinutes()-today.getTimezoneOffset());
+$('date').value=today.toISOString().slice(0,10);
+
+let successIndex=0,successTimer=null;
+async function loadSuccessStudents(){
+  try{
+    const r=await fetch('/api/success-students'); const list=await r.json();
+    const track=document.getElementById('successTrack'),dots=document.getElementById('successDots');
+    if(!Array.isArray(list)||!list.length){document.getElementById('successViewport').style.display='none';dots.style.display='none';return;}
+    document.getElementById('successViewport').style.display='block';
+    track.innerHTML=list.map(s=>`<div class="success-slide"><article class="success-card">${s.photo?`<img src="${escapeHtml(s.photo)}" alt="${escapeHtml(s.name)}">`:'<div class="success-card" style="padding:0;background:#f1f5f9"></div>'}<div><span class="success-badge">SUCCESS STUDENT</span><h3>${escapeHtml(s.name)}</h3><p class="muted">${escapeHtml(s.bio||'Proudly prepared at Sainik Library.')}</p><div class="success-meta"><div><b>Selected for</b><br>${escapeHtml(s.selected_for||'—')}</div><div><b>Selected at</b><br>${escapeHtml(s.selected_place||'—')}</div><div><b>Library period</b><br>${escapeHtml(s.library_from||'—')} → ${escapeHtml(s.library_to||'—')}</div></div></div></article></div>`).join('');
+    dots.innerHTML=list.map((_,i)=>`<button class="success-dot ${i===0?'active':''}" onclick="showSuccess(${i})" aria-label="Student ${i+1}"></button>`).join('');
+    successIndex=0;showSuccess(0);clearInterval(successTimer);successTimer=setInterval(()=>showSuccess((successIndex+1)%list.length),4500);
+  }catch(e){console.error(e)}
+}
+function showSuccess(i){const track=document.getElementById('successTrack');if(!track||!track.children.length)return;successIndex=i;track.style.transform=`translateX(-${i*100}%)`;document.querySelectorAll('.success-dot').forEach((d,n)=>d.classList.toggle('active',n===i));}
+async function seats(){
+  let r=await fetch('/api/seats?shift='+encodeURIComponent($('shift').value));
+  let j=await r.json(); $('seats').innerHTML='';
+  const booked=new Set(j.booked||[]), held=new Set(j.held||[]);
+  for(let i=1;i<=Number(config.totalSeats||40);i++){
+    let isBooked=booked.has(i),isHeld=held.has(i),x=document.createElement('button');
+    x.className='seat '+(isBooked?'booked ':'')+(isHeld?'held ':'')+(selected===i?'sel':'');
+    x.textContent='S'+i;
+    x.disabled=isBooked||isHeld;
+    if(!x.disabled)x.onclick=()=>{selected=i;$('selected').textContent='S'+i;seats()};
+    $('seats').appendChild(x);
+  }
+}
+
+function showReceipt(){
+  $('receipt').innerHTML='<b>Booking ID:</b> '+booking.id+
+    '<br><b>Student:</b> '+escapeHtml(booking.name)+
+    '<br><b>Seat:</b> S'+booking.seat+
+    '<br><b>Date:</b> '+booking.date+
+    '<br><b>Shift:</b> '+booking.shift+
+    '<br><b>Plan:</b> '+booking.plan+
+    '<br><b>Amount:</b> ₹'+booking.amount;
+}
+function escapeHtml(v){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+
+async function book(){
+  if(!selected)return alert('Select an available seat.');
+  if(!$('name').value.trim()||!$('fatherName').value.trim()||!$('address').value.trim()||!/^\d{10}$/.test($('mobile').value))
+    return alert('Enter student name, father name, full address and valid 10-digit mobile.');
+  let seatAtBooking=selected;
+  let r=await fetch('/api/bookings',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({name:$('name').value.trim(),fatherName:$('fatherName').value.trim(),
+      mobile:$('mobile').value,email:$('email').value,address:$('address').value.trim(),
+      seat:seatAtBooking,date:$('date').value,shift:$('shift').value,plan:$('plan').value})});
+  let j=await r.json();
+  if(!r.ok){selected=null;seats();return alert(j.error||'Booking failed.');}
+  booking={...j,name:$('name').value,fatherName:$('fatherName').value,mobile:$('mobile').value,
+    address:$('address').value.trim(),seat:seatAtBooking,
+    date:$('date').value,shift:$('shift').value,plan:$('plan').value};
+  showReceipt();
+  $('paymentStatus').textContent='Payment pending. Your seat is already permanently booked. Complete payment, then click “I Have Paid”.';
+  $('paidBtn').disabled=false;
+  $('paidBtn').style.display='inline-block';
+  $('wa').style.display='none';
+  $('modal').classList.add('on');
+  selected=null;seats();
+  await setupUpi();
+}
+
+async function setupUpi(){
+  $('payAmount').textContent=booking.amount;
+  $('upiText').textContent=config.upiId||'UPI ID not configured';
+  $('upiName').textContent=config.upiName||'Sainik Library';
+  let r=await fetch('/api/payment/qr?amount='+encodeURIComponent(booking.amount)+'&bookingId='+encodeURIComponent(booking.id));
+  let j=await r.json();
+  if(!r.ok){$('paymentStatus').textContent=j.error||'Payment setup failed.';return;}
+  booking.upiLink=j.upiLink;
+  $('paymentQr').src=j.qrDataUrl;
+}
+
+function openUpi(type){
+  if(!booking?.upiLink)return alert('Payment QR/link is not ready.');
+  // Generic UPI is the most compatible fallback. PhonePe/Google Pay may open
+  // directly on phones where the app registers its URI scheme.
+  let link=booking.upiLink;
+  if(type==='phonepe'){
+    const u=booking.upiLink.replace(/^upi:\/\//,'phonepe://');
+    window.location.href=u;
+  }else if(type==='gpay'){
+    const u=booking.upiLink.replace(/^upi:\/\//,'tez://');
+    window.location.href=u;
+  }else{
+    window.location.href=link;
+  }
+}
+
+async function markPaid(){
+  if(!booking?.id)return;
+  $('paidBtn').disabled=true;
+  let r=await fetch('/api/payment/claim',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({bookingId:booking.id})});
+  let j=await r.json();
+  if(!r.ok){$('paidBtn').disabled=false;return alert(j.error||'Could not submit payment status.');}
+  $('paymentStatus').innerHTML='🟡 <b>Payment proof submitted.</b> Please send your payment receipt/screenshot on WhatsApp. Admin will verify the payment; your seat remains permanently booked.';
+  const text='Namaste Sainik Library, I have paid for booking '+booking.id+
+    '. Please verify my payment. Name: '+booking.name+', Seat: S'+booking.seat+
+    ', Date: '+booking.date+', Shift: '+booking.shift+', Amount: ₹'+booking.amount+
+    '. I will send the payment receipt/screenshot here.';
+  $('wa').href='https://wa.me/918765196654?text='+encodeURIComponent(text);
+  $('wa').textContent='💬 Send Payment Receipt on WhatsApp';
+  $('wa').style.display='inline-block';
+  seats();
+}
+
+$('date').onchange=()=>{selected=null;$('selected').textContent='None';seats()};
+$('shift').onchange=()=>{selected=null;$('selected').textContent='None';seats()};
+
+fetch('/api/config').then(r=>r.json()).then(j=>{
+  config=j;$('nt').textContent=j.noticeTitle;$('nx').textContent=j.noticeText;seats();
+});
+$('date').onchange=()=>{selected=null;$('selected').textContent='None';seats()};
+$('shift').onchange=()=>{selected=null;$('selected').textContent='None';seats()};
+
+fetch('/api/config').then(r=>r.json()).then(j=>{
+  config=j;
+  $('nt').textContent=j.noticeTitle;
+  $('nx').textContent=j.noticeText;
+  seats();
+});
+loadSuccessStudents();
+</script>
+</body></html>
