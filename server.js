@@ -112,7 +112,7 @@ function auth(req,res,next){
 app.get("/api/config",async(req,res)=>{
   try{
     res.json({
-      totalSeats:Number(await setting("total_seats","40")),
+      totalSeats:Number(await setting("total_seats","43")),
       noticeTitle:await setting("notice_title","Admissions & seat booking open"),
       noticeText:await setting("notice_text","Contact the library for membership, timing and seat availability."),
       paymentMode:"upi_manual",
