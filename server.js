@@ -201,7 +201,7 @@ app.post("/api/bookings",async(req,res)=>{
   const {name,fatherName="",father_name="",mobile,email="",address="",seat,date,shift,plan="Daily"}=req.body||{};
   const father=String(fatherName||father_name||"").trim();
   try{
-    const total=Number(await setting("total_seats","40"));
+    const total=Number(await setting("total_seats","43"));
     if(!name||!father||!address||!/^[0-9]{10}$/.test(mobile)||!Number.isInteger(Number(seat))||Number(seat)<1||Number(seat)>total||!date||!shift)
       return res.status(400).json({error:"Invalid booking details"});
     const amount=amountForPlan(plan);
