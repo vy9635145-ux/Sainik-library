@@ -116,7 +116,7 @@ app.get("/api/config",async(req,res)=>{
       noticeTitle:await setting("notice_title","Admissions & seat booking open"),
       noticeText:await setting("notice_text","Contact the library for membership, timing and seat availability."),
       paymentMode:"upi_manual",
-      paymentAmount:Number(process.env.PAYMENT_AMOUNT||2000),
+      paymentAmount:Number(process.env.PAYMENT_AMOUNT||50),
       holdMinutes:0,
       upiId:process.env.UPI_ID||"",
       upiName:process.env.UPI_NAME||"Sainik Library"
