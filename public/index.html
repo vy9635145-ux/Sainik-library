@@ -858,7 +858,6 @@ textarea {
 <button class="btn close" onclick="modal.classList.remove('on')">Close</button>
 </div></div>
 <script>
-
 const API_BASE = 'https://sainik-library.onrender.com';
 
 function apiFetch(path, options = {}) {
@@ -884,13 +883,11 @@ const $ = x => document.getElementById(x);
 let today = new Date();
 
 today.setMinutes(
-  today.getMinutes() -
-  today.getTimezoneOffset()
+  today.getMinutes() - today.getTimezoneOffset()
 );
 
 if ($('date')) {
-  $('date').value =
-    today.toISOString().slice(0, 10);
+  $('date').value = today.toISOString().slice(0, 10);
 }
 
 
@@ -906,28 +903,20 @@ async function loadSuccessStudents() {
 
   try {
 
-    const r =
-      await apiFetch(
-        '/api/success-students'
-      );
+    const r = await apiFetch(
+      '/api/success-students'
+    );
 
-    const list =
-      await r.json();
+    const list = await r.json();
 
     const track =
-      document.getElementById(
-        'successTrack'
-      );
+      document.getElementById('successTrack');
 
     const dots =
-      document.getElementById(
-        'successDots'
-      );
+      document.getElementById('successDots');
 
     const viewport =
-      document.getElementById(
-        'successViewport'
-      );
+      document.getElementById('successViewport');
 
 
     if (
@@ -936,13 +925,11 @@ async function loadSuccessStudents() {
     ) {
 
       if (viewport) {
-        viewport.style.display =
-          'none';
+        viewport.style.display = 'none';
       }
 
       if (dots) {
-        dots.style.display =
-          'none';
+        dots.style.display = 'none';
       }
 
       return;
@@ -950,121 +937,115 @@ async function loadSuccessStudents() {
 
 
     if (viewport) {
-      viewport.style.display =
-        'block';
+      viewport.style.display = 'block';
     }
 
     if (dots) {
-      dots.style.display =
-        'flex';
+      dots.style.display = 'flex';
     }
-
 
     if (!track) return;
 
 
-    track.innerHTML =
-      list.map(s => `
+    track.innerHTML = list.map(s => `
 
-        <div class="success-slide">
+      <div class="success-slide">
 
-          <article class="success-card">
+        <article class="success-card">
 
-            ${
-              s.photo
-                ? `
-                  <img
-                    src="${escapeHtml(s.photo)}"
-                    alt="${escapeHtml(
-                      s.name ||
-                      'Success Student'
-                    )}"
-                  >
-                `
-                : `
-                  <div
-                    class="success-card"
-                    style="
-                      padding:0;
-                      background:#f1f5f9
-                    "
-                  ></div>
-                `
-            }
+          ${
+            s.photo
+              ? `
+                <img
+                  src="${escapeHtml(s.photo)}"
+                  alt="${escapeHtml(
+                    s.name || 'Success Student'
+                  )}"
+                >
+              `
+              : `
+                <div
+                  class="success-card"
+                  style="
+                    padding:0;
+                    background:#f1f5f9
+                  "
+                ></div>
+              `
+          }
 
-            <div>
 
-              <span class="success-badge">
-                SUCCESS STUDENT
-              </span>
+          <div>
 
-              <h3>
+            <span class="success-badge">
+              SUCCESS STUDENT
+            </span>
+
+            <h3>
+              ${escapeHtml(
+                s.name || ''
+              )}
+            </h3>
+
+            <p class="muted">
+              ${escapeHtml(
+                s.bio ||
+                'Proudly prepared at Sainik Library.'
+              )}
+            </p>
+
+
+            <div class="success-meta">
+
+              <div>
+                <b>Selected for</b><br>
                 ${escapeHtml(
-                  s.name || ''
+                  s.selected_for || '—'
                 )}
-              </h3>
+              </div>
 
-              <p class="muted">
+              <div>
+                <b>Selected at</b><br>
                 ${escapeHtml(
-                  s.bio ||
-                  'Proudly prepared at Sainik Library.'
+                  s.selected_place || '—'
                 )}
-              </p>
+              </div>
 
-              <div class="success-meta">
-
-                <div>
-                  <b>Selected for</b><br>
-                  ${escapeHtml(
-                    s.selected_for || '—'
-                  )}
-                </div>
-
-                <div>
-                  <b>Selected at</b><br>
-                  ${escapeHtml(
-                    s.selected_place || '—'
-                  )}
-                </div>
-
-                <div>
-                  <b>Library period</b><br>
-                  ${escapeHtml(
-                    s.library_from || '—'
-                  )}
-                  →
-                  ${escapeHtml(
-                    s.library_to || '—'
-                  )}
-                </div>
-
+              <div>
+                <b>Library period</b><br>
+                ${escapeHtml(
+                  s.library_from || '—'
+                )}
+                →
+                ${escapeHtml(
+                  s.library_to || '—'
+                )}
               </div>
 
             </div>
 
-          </article>
+          </div>
 
-        </div>
+        </article>
 
-      `).join('');
+      </div>
+
+    `).join('');
 
 
     if (dots) {
 
-      dots.innerHTML =
-        list.map((_, i) => `
+      dots.innerHTML = list.map((_, i) => `
 
-          <button
-            class="success-dot ${
-              i === 0
-                ? 'active'
-                : ''
-            }"
-            onclick="showSuccess(${i})"
-            aria-label="Student ${i + 1}">
-          </button>
+        <button
+          class="success-dot ${
+            i === 0 ? 'active' : ''
+          }"
+          onclick="showSuccess(${i})"
+          aria-label="Student ${i + 1}"
+        ></button>
 
-        `).join('');
+      `).join('');
 
     }
 
@@ -1074,20 +1055,16 @@ async function loadSuccessStudents() {
     showSuccess(0);
 
 
-    clearInterval(
-      successTimer
-    );
+    clearInterval(successTimer);
 
 
-    successTimer =
-      setInterval(() => {
+    successTimer = setInterval(() => {
 
-        showSuccess(
-          (successIndex + 1) %
-          list.length
-        );
+      showSuccess(
+        (successIndex + 1) % list.length
+      );
 
-      }, 4500);
+    }, 4500);
 
 
   } catch (e) {
@@ -1108,6 +1085,7 @@ function showSuccess(i) {
       'successTrack'
     );
 
+
   if (
     !track ||
     !track.children.length
@@ -1124,9 +1102,7 @@ function showSuccess(i) {
 
 
   document
-    .querySelectorAll(
-      '.success-dot'
-    )
+    .querySelectorAll('.success-dot')
     .forEach((d, n) => {
 
       d.classList.toggle(
@@ -1143,38 +1119,99 @@ function showSuccess(i) {
    PERMANENT SEAT AVAILABILITY
    =========================================================
 
-   IMPORTANT:
+   EXACT RULE:
 
-   Date is NOT used here.
+   Existing Morning:
+       Morning  = BOOKED
+       Evening  = FREE
+       Full Day = BOOKED
 
-   Seat status depends only on active booking:
+   Existing Evening:
+       Morning  = FREE
+       Evening  = BOOKED
+       Full Day = BOOKED
+
+   Existing Full Day:
+       Morning  = BOOKED
+       Evening  = BOOKED
+       Full Day = BOOKED
+
+
+   PAYMENT STATUS:
 
    PAID
-      -> RED
+       -> RED
 
    PENDING / SUBMITTED
-      -> ORANGE
+       -> ORANGE
 
-   No active booking
-      -> GREEN
+   FREE
+       -> GREEN
 
-   Admin cancels booking
-      -> GREEN
+   SELECTED
+       -> GOLD
 
+
+   IMPORTANT:
+
+   DATE IS NOT USED FOR SEAT AVAILABILITY.
+
+   Admin cancellation releases the booking.
    ========================================================= */
 
 async function seats() {
 
+  const seatsBox = $('seats');
+
+  if (!seatsBox) {
+    return;
+  }
+
+
+  const shiftElement = $('shift');
+
+  if (!shiftElement) {
+    return;
+  }
+
+
+  const shift = shiftElement.value;
+
+
+  /*
+     User has not selected a shift yet.
+  */
+
+  if (!shift) {
+
+    seatsBox.innerHTML = `
+      <p class="muted">
+        Please select Morning, Evening or Full Day
+        to view seat availability.
+      </p>
+    `;
+
+    return;
+  }
+
+
   try {
 
-    const r =
-      await apiFetch(
-        '/api/seats'
-      );
+    /*
+       IMPORTANT:
+
+       Shift is now sent to backend.
+
+       Date is intentionally NOT sent.
+    */
+
+    const r = await apiFetch(
+      '/api/seats?shift=' +
+      encodeURIComponent(shift)
+    );
 
 
-    const j =
-      await r.json();
+    const j = await r.json();
 
 
     if (!r.ok) {
@@ -1184,56 +1221,56 @@ async function seats() {
         j
       );
 
-      $('seats').innerHTML =
-        '<p style="color:red">' +
-        'Seat availability load nahi ho rahi.' +
-        '</p>';
+      seatsBox.innerHTML = `
+        <p style="color:red">
+          Seat availability load nahi ho rahi.
+        </p>
+      `;
 
       return;
     }
 
 
-    $('seats').innerHTML =
-      '';
+    seatsBox.innerHTML = '';
 
 
     /*
-     * RED SEATS
-     * Payment confirmed
-     */
+       RED SEATS
 
-    const booked =
-      new Set(
-        (j.booked || [])
-          .map(Number)
-      );
+       Payment confirmed
+       PAID
+    */
 
-
-    /*
-     * ORANGE SEATS
-     * Payment pending/submitted
-     */
-
-    const pending =
-      new Set(
-        (j.pending || [])
-          .map(Number)
-      );
+    const booked = new Set(
+      (j.booked || []).map(Number)
+    );
 
 
     /*
-     * Total seats
-     */
+       ORANGE SEATS
+
+       PENDING / SUBMITTED
+    */
+
+    const pending = new Set(
+      (j.pending || []).map(Number)
+    );
+
+
+    /*
+       Total seats
+
+       Backend config se 55,
+       fallback 55.
+    */
 
     const totalSeats =
-      Number(
-        config.totalSeats || 55
-      );
+      Number(config.totalSeats || 55);
 
 
     /*
-     * Create all seats
-     */
+       Create seats
+    */
 
     for (
       let i = 1;
@@ -1241,105 +1278,87 @@ async function seats() {
       i++
     ) {
 
-
       const x =
-        document.createElement(
-          'button'
-        );
+        document.createElement('button');
 
 
-      x.type =
-        'button';
+      x.type = 'button';
 
 
-      x.textContent =
-        'S' + i;
+      x.textContent = 'S' + i;
 
 
       /*
-       * =================================
-       * RED = PAID / BOOKED
-       * =================================
-       */
+       =================================
+       RED = PAID / BOOKED
+       =================================
+      */
 
-      if (
-        booked.has(i)
-      ) {
+      if (booked.has(i)) {
 
         x.className =
           'seat booked';
 
-        x.disabled =
-          true;
+        x.disabled = true;
 
         x.title =
-          'Seat permanently booked';
-
+          `S${i} is booked for ${shift}`;
 
       }
 
 
       /*
-       * =================================
-       * ORANGE = PAYMENT PENDING
-       * =================================
-       */
+       =================================
+       ORANGE = PENDING / SUBMITTED
+       =================================
+      */
 
-      else if (
-        pending.has(i)
-      ) {
+      else if (pending.has(i)) {
 
         x.className =
           'seat pending';
 
-        x.disabled =
-          true;
+        x.disabled = true;
 
         x.title =
-          'Booking active - payment pending';
-
+          `S${i} has a pending payment for ${shift}`;
 
       }
 
 
       /*
-       * =================================
-       * GREEN = FREE
-       * =================================
-       */
+       =================================
+       GREEN = FREE
+       =================================
+      */
 
       else {
 
         x.className =
-          'seat';
+          'seat free';
 
 
         /*
-         * Selected seat
-         */
+           Selected seat
+        */
 
-        if (
-          selected === i
-        ) {
+        if (selected === i) {
 
-          x.classList.add(
-            'sel'
-          );
+          x.classList.add('sel');
 
         }
 
 
-        x.disabled =
-          false;
+        x.disabled = false;
 
 
         x.title =
-          'Available seat';
+          `S${i} is available for ${shift}`;
 
 
         /*
-         * Select seat
-         */
+           Select seat
+        */
 
         x.onclick = () => {
 
@@ -1354,6 +1373,12 @@ async function seats() {
           }
 
 
+          /*
+             Re-render seats.
+
+             Selected seat becomes GOLD.
+          */
+
           seats();
 
         };
@@ -1361,8 +1386,7 @@ async function seats() {
       }
 
 
-      $('seats')
-        .appendChild(x);
+      seatsBox.appendChild(x);
 
     }
 
@@ -1375,10 +1399,11 @@ async function seats() {
     );
 
 
-    $('seats').innerHTML =
-      '<p style="color:red">' +
-      'Unable to load seats.' +
-      '</p>';
+    seatsBox.innerHTML = `
+      <p style="color:red">
+        Unable to load seats.
+      </p>
+    `;
 
   }
 
@@ -1391,43 +1416,33 @@ async function seats() {
 
 function showReceipt() {
 
+  if (!$('receipt') || !booking) {
+    return;
+  }
+
+
   $('receipt').innerHTML =
 
     '<b>Booking ID:</b> ' +
-    escapeHtml(
-      booking.id
-    ) +
+    escapeHtml(booking.id) +
 
     '<br><b>Student:</b> ' +
-    escapeHtml(
-      booking.name
-    ) +
+    escapeHtml(booking.name) +
 
     '<br><b>Seat:</b> S' +
-    escapeHtml(
-      booking.seat
-    ) +
+    escapeHtml(booking.seat) +
 
     '<br><b>Date:</b> ' +
-    escapeHtml(
-      booking.date
-    ) +
+    escapeHtml(booking.date) +
 
     '<br><b>Shift:</b> ' +
-    escapeHtml(
-      booking.shift
-    ) +
+    escapeHtml(booking.shift) +
 
     '<br><b>Plan:</b> ' +
-    escapeHtml(
-      booking.plan
-    ) +
+    escapeHtml(booking.plan) +
 
     '<br><b>Amount:</b> ₹' +
-    escapeHtml(
-      booking.amount
-    );
-
+    escapeHtml(booking.amount);
 }
 
 
@@ -1446,8 +1461,8 @@ function escapeHtml(v) {
       '>': '&gt;',
       '"': '&quot;',
       "'": '&#039;'
-    }[m])
 
+    }[m])
   );
 
 }
@@ -1459,6 +1474,10 @@ function escapeHtml(v) {
 
 async function book() {
 
+  /*
+     Seat select check
+  */
+
   if (!selected) {
 
     return alert(
@@ -1467,6 +1486,26 @@ async function book() {
 
   }
 
+
+  /*
+     Shift check
+  */
+
+  if (
+    !$('shift') ||
+    !$('shift').value
+  ) {
+
+    return alert(
+      'Please select a shift.'
+    );
+
+  }
+
+
+  /*
+     Student information validation
+  */
 
   if (
 
@@ -1489,84 +1528,90 @@ async function book() {
   }
 
 
+  /*
+     Store selected seat
+     before sending booking.
+  */
+
   const seatAtBooking =
     selected;
 
 
   try {
 
-    const r =
-      await apiFetch(
-        '/api/bookings',
-        {
-          method: 'POST',
+    const r = await apiFetch(
+      '/api/bookings',
+      {
 
-          headers: {
-            'Content-Type':
-              'application/json'
-          },
+        method: 'POST',
 
-          body:
-            JSON.stringify({
+        headers: {
+          'Content-Type':
+            'application/json'
+        },
 
-              name:
-                $('name')
-                  .value
-                  .trim(),
+        body: JSON.stringify({
 
-              fatherName:
-                $('fatherName')
-                  .value
-                  .trim(),
+          name:
+            $('name')
+              .value
+              .trim(),
 
-              mobile:
-                $('mobile')
-                  .value,
+          fatherName:
+            $('fatherName')
+              .value
+              .trim(),
 
-              email:
-                $('email')
-                  .value,
+          mobile:
+            $('mobile')
+              .value,
 
-              address:
-                $('address')
-                  .value
-                  .trim(),
+          email:
+            $('email')
+              .value,
 
-              seat:
-                seatAtBooking,
+          address:
+            $('address')
+              .value
+              .trim(),
 
-              date:
-                $('date')
-                  .value,
+          seat:
+            seatAtBooking,
 
-              shift:
-                $('shift')
-                  .value,
+          date:
+            $('date')
+              .value,
 
-              plan:
-                $('plan')
-                  .value
+          shift:
+            $('shift')
+              .value,
 
-            })
+          plan:
+            $('plan')
+              .value
 
-        }
-      );
+        })
+
+      }
+    );
 
 
     const j =
       await r.json();
 
 
+    /*
+       Booking failed
+    */
+
     if (!r.ok) {
 
-      selected =
-        null;
+      selected = null;
 
 
       if ($('selected')) {
 
-        $('selected')
-          .textContent =
+        $('selected').textContent =
           'None';
 
       }
@@ -1582,6 +1627,10 @@ async function book() {
 
     }
 
+
+    /*
+       Booking successful
+    */
 
     booking = {
 
@@ -1616,51 +1665,77 @@ async function book() {
     };
 
 
+    /*
+       Show receipt
+    */
+
     showReceipt();
 
 
-    $('paymentStatus')
-      .textContent =
-      'Payment pending. Your seat is already permanently booked. Complete payment, then click "I Have Paid".';
+    /*
+       Payment status
+    */
 
+    $('paymentStatus').textContent =
+      'Payment pending. Your seat is already booked for the selected shift. Complete payment, then click "I Have Paid".';
+
+
+    /*
+       Paid button
+    */
 
     $('paidBtn').disabled =
       false;
-
 
     $('paidBtn').style.display =
       'inline-block';
 
 
+    /*
+       WhatsApp button initially hidden
+    */
+
     $('wa').style.display =
       'none';
 
+
+    /*
+       Open payment modal
+    */
 
     $('modal')
       .classList
       .add('on');
 
 
-    selected =
-      null;
+    /*
+       Clear selected seat
+    */
+
+    selected = null;
 
 
     if ($('selected')) {
 
-      $('selected')
-        .textContent =
+      $('selected').textContent =
         'None';
 
     }
 
 
     /*
-     * Immediately show the newly
-     * booked seat as orange.
-     */
+       Reload seats.
+
+       Newly booked pending seat
+       should become ORANGE.
+    */
 
     seats();
 
+
+    /*
+       Setup UPI
+    */
 
     await setupUpi();
 
@@ -1671,6 +1746,7 @@ async function book() {
       'Booking error:',
       e
     );
+
 
     alert(
       'Booking failed. Please try again.'
@@ -1688,6 +1764,11 @@ async function book() {
 async function setupUpi() {
 
   try {
+
+    if (!$('payAmount') || !booking) {
+      return;
+    }
+
 
     $('payAmount')
       .textContent =
@@ -1731,7 +1812,6 @@ async function setupUpi() {
         'Payment setup failed.';
 
       return;
-
     }
 
 
@@ -1739,8 +1819,12 @@ async function setupUpi() {
       j.upiLink;
 
 
-    $('paymentQr').src =
-      j.qrDataUrl;
+    if ($('paymentQr')) {
+
+      $('paymentQr').src =
+        j.qrDataUrl;
+
+    }
 
 
   } catch (e) {
@@ -1750,9 +1834,14 @@ async function setupUpi() {
       e
     );
 
-    $('paymentStatus')
-      .textContent =
-      'Payment setup failed.';
+
+    if ($('paymentStatus')) {
+
+      $('paymentStatus')
+        .textContent =
+        'Payment setup failed.';
+
+    }
 
   }
 
@@ -1781,9 +1870,11 @@ function openUpi(type) {
     booking.upiLink;
 
 
-  if (
-    type === 'phonepe'
-  ) {
+  /*
+     PhonePe
+  */
+
+  if (type === 'phonepe') {
 
     const u =
       link.replace(
@@ -1794,10 +1885,14 @@ function openUpi(type) {
     window.location.href =
       u;
 
+  }
 
-  } else if (
-    type === 'gpay'
-  ) {
+
+  /*
+     Google Pay
+  */
+
+  else if (type === 'gpay') {
 
     const u =
       link.replace(
@@ -1808,8 +1903,14 @@ function openUpi(type) {
     window.location.href =
       u;
 
+  }
 
-  } else {
+
+  /*
+     Normal UPI
+  */
+
+  else {
 
     window.location.href =
       link;
@@ -1843,6 +1944,7 @@ async function markPaid() {
       await apiFetch(
         '/api/payment/claim',
         {
+
           method: 'POST',
 
           headers: {
@@ -1852,8 +1954,10 @@ async function markPaid() {
 
           body:
             JSON.stringify({
+
               bookingId:
                 booking.id
+
             })
 
         }
@@ -1877,26 +1981,51 @@ async function markPaid() {
     }
 
 
+    /*
+       Payment submitted
+    */
+
     $('paymentStatus')
       .innerHTML =
-      '🟡 <b>Payment proof submitted.</b> Please send your payment receipt/screenshot on WhatsApp. Admin will verify the payment; your seat remains permanently booked.';
+      '🟡 <b>Payment proof submitted.</b> Please send your payment receipt/screenshot on WhatsApp. Admin will verify the payment; your seat remains booked for the selected shift.';
 
+
+    /*
+       WhatsApp message
+    */
 
     const text =
+
       'Namaste Sainik Library, I have paid for booking ' +
+
       booking.id +
+
       '. Please verify my payment. Name: ' +
+
       booking.name +
+
       ', Seat: S' +
+
       booking.seat +
+
       ', Date: ' +
+
       booking.date +
+
       ', Shift: ' +
+
       booking.shift +
+
       ', Amount: ₹' +
+
       booking.amount +
+
       '. I will send the payment receipt/screenshot here.';
 
+
+    /*
+       CORRECT WhatsApp URL
+    */
 
     $('wa').href =
       'https://wa.me/918765196654?text=' +
@@ -1912,9 +2041,9 @@ async function markPaid() {
 
 
     /*
-     * Seat stays ORANGE
-     * because payment is submitted
-     */
+       Seat remains ORANGE
+       because payment is submitted.
+    */
 
     seats();
 
@@ -1926,8 +2055,10 @@ async function markPaid() {
       e
     );
 
+
     $('paidBtn').disabled =
       false;
+
 
     alert(
       'Could not submit payment status.'
@@ -1943,31 +2074,35 @@ async function markPaid() {
    =========================================================
 
    IMPORTANT:
-   Date changes only booking date.
-   It does NOT change permanent seat status.
+
+   Date is only booking information.
+
+   Date DOES NOT control seat availability.
+
+   Changing date will NOT make a permanently
+   booked seat free.
    ========================================================= */
 
 if ($('date')) {
 
   $('date').onchange = () => {
 
-    selected =
-      null;
+    selected = null;
 
 
     if ($('selected')) {
 
-      $('selected')
-        .textContent =
+      $('selected').textContent =
         'None';
 
     }
 
 
     /*
-     * Reload seats, but the API
-     * does not use date.
-     */
+       Reload seats.
+
+       Backend ignores date.
+    */
 
     seats();
 
@@ -1980,29 +2115,54 @@ if ($('date')) {
    SHIFT CHANGE
    =========================================================
 
-   Shift changes only new booking
-   information.
+   IMPORTANT:
 
-   Existing permanent seat status
-   remains unchanged.
+   Shift DOES control which existing bookings
+   are shown as blocked.
+
+   RULE:
+
+   Existing Morning:
+       Morning  = ❌
+       Evening  = ✅
+       Full Day = ❌
+
+   Existing Evening:
+       Morning  = ✅
+       Evening  = ❌
+       Full Day = ❌
+
+   Existing Full Day:
+       Morning  = ❌
+       Evening  = ❌
+       Full Day = ❌
    ========================================================= */
 
 if ($('shift')) {
 
   $('shift').onchange = () => {
 
-    selected =
-      null;
+    /*
+       New shift selected,
+       so previous seat selection
+       must be cleared.
+    */
+
+    selected = null;
 
 
     if ($('selected')) {
 
-      $('selected')
-        .textContent =
+      $('selected').textContent =
         'None';
 
     }
 
+
+    /*
+       Reload seats for the
+       newly selected shift.
+    */
 
     seats();
 
@@ -2015,16 +2175,16 @@ if ($('shift')) {
    LOAD CONFIG
    ========================================================= */
 
-apiFetch(
-  '/api/config'
-)
+apiFetch('/api/config')
 
   .then(r => {
 
     if (!r.ok) {
+
       throw new Error(
         'Config request failed'
       );
+
     }
 
     return r.json();
@@ -2033,9 +2193,12 @@ apiFetch(
 
   .then(j => {
 
-    config =
-      j || {};
+    config = j || {};
 
+
+    /*
+       Notice title
+    */
 
     if ($('nt')) {
 
@@ -2044,6 +2207,10 @@ apiFetch(
 
     }
 
+
+    /*
+       Notice text
+    */
 
     if ($('nx')) {
 
@@ -2054,8 +2221,8 @@ apiFetch(
 
 
     /*
-     * Load permanent seat status.
-     */
+       Load seat availability
+    */
 
     seats();
 
@@ -2070,9 +2237,9 @@ apiFetch(
 
 
     /*
-     * Even if config fails,
-     * try to load seats.
-     */
+       Even if config fails,
+       try loading seats.
+    */
 
     seats();
 

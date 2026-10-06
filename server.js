@@ -1,34 +1,70 @@
 require("dotenv").config();
-const express=require("express"), path=require("path");
-const {Pool}=require("pg");
-const bcrypt=require("bcryptjs"), jwt=require("jsonwebtoken"), crypto=require("crypto"), QRCode=require("qrcode");
 
-const app=express();
-app.use(express.json({limit:"6mb"}));
-app.use(express.static(path.join(__dirname,"public")));
+const express = require("express");
+const path = require("path");
+const { Pool } = require("pg");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+const QRCode = require("qrcode");
 
-const DATABASE_URL=process.env.DATABASE_URL;
-if(!DATABASE_URL){
-  console.error("DATABASE_URL is not configured. Sainik Library requires PostgreSQL.");
+const app = express();
+
+app.use(express.json({ limit: "6mb" }));
+app.use(express.static(path.join(__dirname, "public")));
+
+
+/* =========================================================
+   DATABASE
+   ========================================================= */
+
+const DATABASE_URL = process.env.DATABASE_URL;
+
+if (!DATABASE_URL) {
+  console.error(
+    "DATABASE_URL is not configured. Sainik Library requires PostgreSQL."
+  );
   process.exit(1);
 }
-const pool=new Pool({
-  connectionString:DATABASE_URL,
-  ssl: process.env.DATABASE_SSL === "false" ? false : {rejectUnauthorized:false},
-  max:5
+
+const pool = new Pool({
+  connectionString: DATABASE_URL,
+  ssl:
+    process.env.DATABASE_SSL === "false"
+      ? false
+      : { rejectUnauthorized: false },
+  max: 5
 });
 
-async function query(text,params=[]){return pool.query(text,params);}
-async function one(text,params=[]){const r=await query(text,params);return r.rows[0]||null;}
-async function all(text,params=[]){const r=await query(text,params);return r.rows;}
 
-async function initDb(){
+async function query(text, params = []) {
+  return pool.query(text, params);
+}
+
+async function one(text, params = []) {
+  const r = await query(text, params);
+  return r.rows[0] || null;
+}
+
+async function all(text, params = []) {
+  const r = await query(text, params);
+  return r.rows;
+}
+
+
+/* =========================================================
+   DATABASE INITIALIZATION
+   ========================================================= */
+
+async function initDb() {
+
   await query(`
     CREATE TABLE IF NOT EXISTS admins(
       id SERIAL PRIMARY KEY,
       username TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL
     );
+
     CREATE TABLE IF NOT EXISTS bookings(
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -50,10 +86,12 @@ async function initDb(){
       cancelled_by TEXT,
       cancellation_reason TEXT
     );
+
     CREATE TABLE IF NOT EXISTS settings(
       key TEXT PRIMARY KEY,
       value TEXT
     );
+
     CREATE TABLE IF NOT EXISTS success_students(
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
@@ -67,31 +105,93 @@ async function initDb(){
       updated_at TEXT NOT NULL
     );
   `);
-  // Indexes are intentionally partial: cancelled bookings release the seat.
-  await query(`CREATE UNIQUE INDEX IF NOT EXISTS uq_active_seat_shift ON bookings(seat,shift) WHERE status IN ('pending','confirmed')`);
-  await query(`CREATE INDEX IF NOT EXISTS idx_bookings_created_at ON bookings(created_at DESC)`);
-  await query(`CREATE INDEX IF NOT EXISTS idx_success_students_id ON success_students(id DESC)`);
 
-  const adminUser=process.env.ADMIN_USER||"admin";
-  const adminPass=process.env.ADMIN_PASSWORD||"ChangeMe123!";
-  const existing=await one("SELECT id FROM admins WHERE username=$1",[adminUser]);
-  if(!existing){
-    await query("INSERT INTO admins(username,password_hash) VALUES($1,$2)",[adminUser,bcrypt.hashSync(adminPass,12)]);
+
+  /*
+    Active bookings reserve the seat.
+
+    Cancelled bookings release the seat.
+  */
+
+  await query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS uq_active_seat_shift
+    ON bookings(seat, shift)
+    WHERE status IN ('pending','confirmed')
+  `);
+
+
+  await query(`
+    CREATE INDEX IF NOT EXISTS idx_bookings_created_at
+    ON bookings(created_at DESC)
+  `);
+
+
+  await query(`
+    CREATE INDEX IF NOT EXISTS idx_success_students_id
+    ON success_students(id DESC)
+  `);
+
+
+  /* =======================================================
+     DEFAULT ADMIN
+     ======================================================= */
+
+  const adminUser =
+    process.env.ADMIN_USER || "admin";
+
+  const adminPass =
+    process.env.ADMIN_PASSWORD || "ChangeMe123!";
+
+  const existing = await one(
+    "SELECT id FROM admins WHERE username=$1",
+    [adminUser]
+  );
+
+  if (!existing) {
+    await query(
+      "INSERT INTO admins(username,password_hash) VALUES($1,$2)",
+      [
+        adminUser,
+        bcrypt.hashSync(adminPass, 12)
+      ]
+    );
   }
 
-  // Older pending bookings are treated as active permanent bookings, matching the
-  // previous SQLite version's behaviour. No automatic expiry is performed.
-  await query("UPDATE bookings SET status='confirmed' WHERE status='pending'");
+
+  /*
+    Old pending bookings remain active.
+
+    No automatic expiry.
+  */
+
+  await query(`
+    UPDATE bookings
+    SET status='confirmed'
+    WHERE status='pending'
+  `);
 }
+
+
+/* =========================================================
+   SETTINGS
+   ========================================================= */
+
 function setting(k, d) {
   return one(
     "SELECT value FROM settings WHERE key=$1",
     [k]
-  ).then(x => x ? x.value : d);
+  ).then(x => (x ? x.value : d));
 }
 
+
+/* =========================================================
+   PLAN AMOUNT
+   ========================================================= */
+
 function amountForPlan(plan) {
+
   const map = {
+
     Daily: Number(
       process.env.DAILY_AMOUNT ||
       process.env.PAYMENT_AMOUNT ||
@@ -109,6 +209,7 @@ function amountForPlan(plan) {
       process.env.PAYMENT_AMOUNT ||
       1500
     )
+
   };
 
   return Number.isFinite(map[plan]) && map[plan] > 0
@@ -119,9 +220,31 @@ function amountForPlan(plan) {
 
 /* =========================================================
    SHIFT CONFLICT LOGIC
+   =========================================================
+
+   FINAL SEAT RULE:
+
+   Existing Morning:
+      Morning  -> BLOCKED
+      Evening  -> FREE
+      Full Day -> BLOCKED
+
+   Existing Evening:
+      Morning  -> FREE
+      Evening  -> BLOCKED
+      Full Day -> BLOCKED
+
+   Existing Full Day:
+      Morning  -> BLOCKED
+      Evening  -> BLOCKED
+      Full Day -> BLOCKED
+
+   DATE DOES NOT MATTER.
+
    ========================================================= */
 
 function conflictingShifts(shift) {
+
   if (shift === "Morning") {
     return ["Morning", "Full Day"];
   }
@@ -131,10 +254,14 @@ function conflictingShifts(shift) {
   }
 
   if (shift === "Full Day") {
-    return ["Morning", "Evening", "Full Day"];
+    return [
+      "Morning",
+      "Evening",
+      "Full Day"
+    ];
   }
 
-  return [shift];
+  return [];
 }
 
 
@@ -143,6 +270,7 @@ function conflictingShifts(shift) {
    ========================================================= */
 
 function placeholders(start, count) {
+
   return Array.from(
     { length: count },
     (_, i) => `$${start + i}`
@@ -160,15 +288,20 @@ const SECRET =
 
 
 function auth(req, res, next) {
-  try {
-    const token = (req.headers.authorization || "")
-      .replace("Bearer ", "");
 
-    req.admin = jwt.verify(token, SECRET);
+  try {
+
+    const token =
+      (req.headers.authorization || "")
+        .replace("Bearer ", "");
+
+    req.admin =
+      jwt.verify(token, SECRET);
 
     next();
 
   } catch (e) {
+
     res.status(401).json({
       error: "Unauthorized"
     });
@@ -181,42 +314,55 @@ function auth(req, res, next) {
    ========================================================= */
 
 app.get("/api/config", async (req, res) => {
+
   try {
 
-    const totalSeats = Number(
-      await setting("total_seats", "55")
-    );
+    const totalSeats =
+      Number(
+        await setting(
+          "total_seats",
+          "55"
+        )
+      );
+
 
     res.json({
 
       totalSeats:
-        Number.isInteger(totalSeats) && totalSeats > 0
+        Number.isInteger(totalSeats) &&
+        totalSeats > 0
           ? totalSeats
           : 55,
 
-      noticeTitle: await setting(
-        "notice_title",
-        "Admissions & seat booking open"
-      ),
+      noticeTitle:
+        await setting(
+          "notice_title",
+          "Admissions & seat booking open"
+        ),
 
-      noticeText: await setting(
-        "notice_text",
-        "Contact the library for membership, timing and seat availability."
-      ),
+      noticeText:
+        await setting(
+          "notice_text",
+          "Contact the library for membership, timing and seat availability."
+        ),
 
-      paymentMode: "upi_manual",
+      paymentMode:
+        "upi_manual",
 
-      paymentAmount: Number(
-        process.env.PAYMENT_AMOUNT || 2000
-      ),
+      paymentAmount:
+        Number(
+          process.env.PAYMENT_AMOUNT || 2000
+        ),
 
-      holdMinutes: 0,
+      holdMinutes:
+        0,
 
       upiId:
         process.env.UPI_ID || "",
 
       upiName:
-        process.env.UPI_NAME || "Sainik Library"
+        process.env.UPI_NAME ||
+        "Sainik Library"
     });
 
   } catch (e) {
@@ -227,7 +373,8 @@ app.get("/api/config", async (req, res) => {
     );
 
     res.status(500).json({
-      error: "Could not load config"
+      error:
+        "Could not load config"
     });
   }
 });
@@ -238,12 +385,14 @@ app.get("/api/config", async (req, res) => {
    ========================================================= */
 
 app.get("/api/payment/qr", async (req, res) => {
+
   try {
 
     const {
       amount,
       bookingId
     } = req.query;
+
 
     const upi =
       process.env.UPI_ID;
@@ -252,14 +401,19 @@ app.get("/api/payment/qr", async (req, res) => {
       process.env.UPI_NAME ||
       "Sainik Library";
 
+
     if (!upi) {
+
       return res.status(503).json({
-        error: "UPI_ID is not configured"
+        error:
+          "UPI_ID is not configured"
       });
     }
 
+
     const finalAmount =
       Number(amount) || 0;
+
 
     const pa =
       `upi://pay?pa=${encodeURIComponent(upi)}` +
@@ -267,14 +421,20 @@ app.get("/api/payment/qr", async (req, res) => {
       `&am=${encodeURIComponent(finalAmount)}` +
       `&cu=INR` +
       `&tn=${encodeURIComponent(
-        "Sainik Library " + (bookingId || "")
+        "Sainik Library " +
+        (bookingId || "")
       )}`;
 
+
     const qrDataUrl =
-      await QRCode.toDataURL(pa, {
-        width: 420,
-        margin: 2
-      });
+      await QRCode.toDataURL(
+        pa,
+        {
+          width: 420,
+          margin: 2
+        }
+      );
+
 
     res.json({
       upiLink: pa,
@@ -289,7 +449,8 @@ app.get("/api/payment/qr", async (req, res) => {
     );
 
     res.status(500).json({
-      error: "Could not create payment QR"
+      error:
+        "Could not create payment QR"
     });
   }
 });
@@ -301,97 +462,185 @@ app.get("/api/payment/qr", async (req, res) => {
 
    IMPORTANT:
 
-   Seat status is now PERMANENT and independent of:
+   DATE IS NOT USED.
 
-   - Date
-   - Shift
+   Seat availability depends on selected SHIFT.
 
-   Active booking:
-   - payment_status = paid
-       => RED / BOOKED
+   Morning booking:
+      Morning  = BOOKED
+      Evening  = FREE
+      Full Day = BOOKED
 
-   Active booking:
-   - payment_status = pending
-   - payment_status = submitted
-       => ORANGE / PAYMENT NOT CONFIRMED
+   Evening booking:
+      Morning  = FREE
+      Evening  = BOOKED
+      Full Day = BOOKED
 
-   Cancelled booking:
-       => NOT INCLUDED
-       => Seat becomes GREEN / FREE
+   Full Day booking:
+      Morning  = BOOKED
+      Evening  = BOOKED
+      Full Day = BOOKED
 
-   Therefore:
+   PAYMENT STATUS:
 
-   Example:
+      paid
+         -> RED / BOOKED
 
-   S3 booked on 2026-10-01
+      pending/submitted
+         -> ORANGE / PENDING
 
-   Then S3 remains booked on:
+   CANCELLED:
 
-   2026-10-02
-   2026-10-10
-   2026-11-01
-   Any date
-
-   until admin cancels the booking.
+      -> seat/shift becomes available
 
    ========================================================= */
 
 app.get("/api/seats", async (req, res) => {
 
+  const shift =
+    String(
+      req.query.shift || ""
+    ).trim();
+
+
+  if (
+    ![
+      "Morning",
+      "Evening",
+      "Full Day"
+    ].includes(shift)
+  ) {
+
+    return res.status(400).json({
+      error:
+        "Invalid shift"
+    });
+  }
+
+
   try {
 
+    let allowedShifts;
+
+
     /*
-      We intentionally DO NOT use:
-
-      req.query.date
-      req.query.shift
-
-      because seat status is permanent.
+      If user is selecting Morning,
+      only Morning and Full Day bookings
+      can block the seat.
     */
 
-    const rows = await all(
-      `SELECT
-         seat,
-         payment_status,
-         status
-       FROM bookings
-       WHERE status IN ('pending', 'confirmed')
-       ORDER BY seat ASC`
-    );
+    if (shift === "Morning") {
+
+      allowedShifts = [
+        "Morning",
+        "Full Day"
+      ];
+
+    }
+
+
+    /*
+      If user is selecting Evening,
+      only Evening and Full Day bookings
+      can block the seat.
+    */
+
+    else if (shift === "Evening") {
+
+      allowedShifts = [
+        "Evening",
+        "Full Day"
+      ];
+
+    }
+
+
+    /*
+      Full Day conflicts with everything.
+    */
+
+    else {
+
+      allowedShifts = [
+        "Morning",
+        "Evening",
+        "Full Day"
+      ];
+    }
+
+
+    const rows =
+      await all(
+        `
+        SELECT
+          seat,
+          payment_status,
+          shift
+        FROM bookings
+        WHERE status IN ('pending','confirmed')
+        AND shift = ANY($1::text[])
+        ORDER BY seat ASC
+        `,
+        [allowedShifts]
+      );
+
 
     const booked = [];
     const pending = [];
 
+
     for (const row of rows) {
 
       const seatNumber =
-        Number(row.seat);
+        Number(
+          String(row.seat)
+            .replace(/\D/g, "")
+        );
 
-      if (!Number.isInteger(seatNumber)) {
+
+      if (
+        !Number.isInteger(seatNumber) ||
+        seatNumber <= 0
+      ) {
         continue;
       }
 
+
+      const paymentStatus =
+        String(
+          row.payment_status || ""
+        ).toLowerCase();
+
+
       /*
-        PAID payment
-        => RED
+        PAID
+        -> RED
       */
+
       if (
-        String(row.payment_status || "")
-          .toLowerCase() === "paid"
+        paymentStatus === "paid"
       ) {
 
-        booked.push(seatNumber);
+        booked.push(
+          seatNumber
+        );
 
-      } else {
+      }
 
-        /*
-          PENDING or SUBMITTED
-          => ORANGE
-        */
 
-        pending.push(seatNumber);
+      /*
+        PENDING / SUBMITTED
+        -> ORANGE
+      */
+
+      else {
+
+        pending.push(
+          seatNumber
+        );
       }
     }
+
 
     res.json({
 
@@ -405,6 +654,7 @@ app.get("/api/seats", async (req, res) => {
 
     });
 
+
   } catch (e) {
 
     console.error(
@@ -413,7 +663,8 @@ app.get("/api/seats", async (req, res) => {
     );
 
     res.status(500).json({
-      error: "Could not load seats"
+      error:
+        "Could not load seats"
     });
   }
 });
@@ -432,11 +683,13 @@ app.post("/api/login", async (req, res) => {
       password
     } = req.body || {};
 
+
     const admin =
       await one(
         "SELECT * FROM admins WHERE username=$1",
         [username]
       );
+
 
     if (
       !admin ||
@@ -447,9 +700,11 @@ app.post("/api/login", async (req, res) => {
     ) {
 
       return res.status(401).json({
-        error: "Invalid credentials"
+        error:
+          "Invalid credentials"
       });
     }
+
 
     const token =
       jwt.sign(
@@ -463,6 +718,7 @@ app.post("/api/login", async (req, res) => {
         }
       );
 
+
     res.json({
       token
     });
@@ -475,7 +731,8 @@ app.post("/api/login", async (req, res) => {
     );
 
     res.status(500).json({
-      error: "Login failed"
+      error:
+        "Login failed"
     });
   }
 });
@@ -494,12 +751,17 @@ app.get(
 
       const bookings =
         await all(
-          `SELECT *
-           FROM bookings
-           ORDER BY created_at DESC`
+          `
+          SELECT *
+          FROM bookings
+          ORDER BY created_at DESC
+          `
         );
 
-      res.json(bookings);
+
+      res.json(
+        bookings
+      );
 
     } catch (e) {
 
@@ -509,7 +771,8 @@ app.get(
       );
 
       res.status(500).json({
-        error: "Could not load bookings"
+        error:
+          "Could not load bookings"
       });
     }
   }
@@ -528,12 +791,17 @@ app.get(
 
       const students =
         await all(
-          `SELECT *
-           FROM success_students
-           ORDER BY id DESC`
+          `
+          SELECT *
+          FROM success_students
+          ORDER BY id DESC
+          `
         );
 
-      res.json(students);
+
+      res.json(
+        students
+      );
 
     } catch (e) {
 
@@ -543,7 +811,8 @@ app.get(
       );
 
       res.status(500).json({
-        error: "Could not load success students"
+        error:
+          "Could not load success students"
       });
     }
   }
@@ -571,12 +840,17 @@ app.post(
         libraryTo = ""
       } = req.body || {};
 
-      if (!String(name || "").trim()) {
+
+      if (
+        !String(name || "").trim()
+      ) {
 
         return res.status(400).json({
-          error: "Student name is required"
+          error:
+            "Student name is required"
         });
       }
+
 
       if (
         String(photo).length >
@@ -589,12 +863,15 @@ app.post(
         });
       }
 
+
       const now =
         new Date().toISOString();
 
+
       const result =
         await one(
-          `INSERT INTO success_students
+          `
+          INSERT INTO success_students
           (
             name,
             photo,
@@ -610,7 +887,8 @@ app.post(
           (
             $1,$2,$3,$4,$5,$6,$7,$8,$8
           )
-          RETURNING id`,
+          RETURNING id
+          `,
           [
             String(name).trim(),
             String(photo || ""),
@@ -622,6 +900,7 @@ app.post(
             now
           ]
         );
+
 
       res.json({
         ok: true,
@@ -636,7 +915,8 @@ app.post(
       );
 
       res.status(500).json({
-        error: "Could not save student"
+        error:
+          "Could not save student"
       });
     }
   }
@@ -660,12 +940,15 @@ app.put(
           [req.params.id]
         );
 
+
       if (!old) {
 
         return res.status(404).json({
-          error: "Student record not found"
+          error:
+            "Student record not found"
         });
       }
+
 
       const {
         name,
@@ -677,17 +960,23 @@ app.put(
         libraryTo = ""
       } = req.body || {};
 
-      if (!String(name || "").trim()) {
+
+      if (
+        !String(name || "").trim()
+      ) {
 
         return res.status(400).json({
-          error: "Student name is required"
+          error:
+            "Student name is required"
         });
       }
+
 
       const finalPhoto =
         photo === undefined
           ? old.photo
           : String(photo || "");
+
 
       if (
         finalPhoto.length >
@@ -700,18 +989,21 @@ app.put(
         });
       }
 
+
       await query(
-        `UPDATE success_students
-         SET
-           name=$1,
-           photo=$2,
-           bio=$3,
-           selected_for=$4,
-           selected_place=$5,
-           library_from=$6,
-           library_to=$7,
-           updated_at=$8
-         WHERE id=$9`,
+        `
+        UPDATE success_students
+        SET
+          name=$1,
+          photo=$2,
+          bio=$3,
+          selected_for=$4,
+          selected_place=$5,
+          library_from=$6,
+          library_to=$7,
+          updated_at=$8
+        WHERE id=$9
+        `,
         [
           String(name).trim(),
           finalPhoto,
@@ -725,6 +1017,7 @@ app.put(
         ]
       );
 
+
       res.json({
         ok: true
       });
@@ -737,7 +1030,8 @@ app.put(
       );
 
       res.status(500).json({
-        error: "Could not update student"
+        error:
+          "Could not update student"
       });
     }
   }
@@ -761,12 +1055,15 @@ app.delete(
           [req.params.id]
         );
 
+
       if (!result.rowCount) {
 
         return res.status(404).json({
-          error: "Student record not found"
+          error:
+            "Student record not found"
         });
       }
+
 
       res.json({
         ok: true
@@ -780,7 +1077,8 @@ app.delete(
       );
 
       res.status(500).json({
-        error: "Could not delete student"
+        error:
+          "Could not delete student"
       });
     }
   }
@@ -791,21 +1089,21 @@ app.delete(
    CREATE BOOKING
    =========================================================
 
-   IMPORTANT:
+   FINAL RULE:
 
-   Seat is permanently locked after booking.
+   Date does NOT decide availability.
 
-   Date and shift are NOT used for deciding
-   whether a seat is already occupied.
+   Morning booking:
+      Morning + Full Day blocked
 
-   Example:
+   Evening booking:
+      Evening + Full Day blocked
 
-   S10 booked today
+   Full Day booking:
+      Morning + Evening + Full Day blocked
 
-   Then nobody can book S10 tomorrow,
-   next week, next month, etc.
-
-   Only admin cancellation releases S10.
+   Cancelled booking:
+      released
 
    ========================================================= */
 
@@ -826,12 +1124,14 @@ app.post(
       plan = "Daily"
     } = req.body || {};
 
+
     const father =
       String(
         fatherName ||
         father_name ||
         ""
       ).trim();
+
 
     try {
 
@@ -843,8 +1143,10 @@ app.post(
           )
         );
 
+
       const seatNumber =
         Number(seat);
+
 
       if (
         !String(name || "").trim() ||
@@ -853,7 +1155,9 @@ app.post(
         !/^[0-9]{10}$/.test(
           String(mobile || "")
         ) ||
-        !Number.isInteger(seatNumber) ||
+        !Number.isInteger(
+          seatNumber
+        ) ||
         seatNumber < 1 ||
         seatNumber > total ||
         !date ||
@@ -865,12 +1169,15 @@ app.post(
       ) {
 
         return res.status(400).json({
-          error: "Invalid booking details"
+          error:
+            "Invalid booking details"
         });
       }
 
+
       const amount =
         amountForPlan(plan);
+
 
       const id =
         "SL-" +
@@ -881,42 +1188,80 @@ app.post(
           Math.random() * 90 + 10
         );
 
+
       const client =
         await pool.connect();
 
+
       try {
 
-        await client.query("BEGIN");
+        await client.query(
+          "BEGIN"
+        );
 
 
-        /* =====================================================
-           PERMANENT SEAT CONFLICT CHECK
-           =====================================================
+        /* =================================================
+           IMPORTANT SEAT LOCK
+           =================================================
 
-           NO date check
-           NO shift check
+           Locks the physical seat during this transaction.
 
-           Only:
+           Date is NOT checked.
+        */
 
-           seat + active booking
+        await client.query(
+          `
+          SELECT pg_advisory_xact_lock($1)
+          `,
+          [seatNumber]
+        );
 
-           Cancelled booking does NOT block the seat.
-           ===================================================== */
+
+        /* =================================================
+           SHIFT CONFLICT CHECK
+           =================================================
+
+           Morning:
+              Morning + Full Day
+
+           Evening:
+              Evening + Full Day
+
+           Full Day:
+              Morning + Evening + Full Day
+        */
+
+        const conflicting =
+          conflictingShifts(
+            shift
+          );
+
 
         const existing =
           await client.query(
-            `SELECT id, seat, payment_status, status
-             FROM bookings
-             WHERE seat=$1
-             AND status IN ('pending','confirmed')
-             FOR UPDATE`,
+            `
+            SELECT
+              id,
+              seat,
+              shift,
+              payment_status,
+              status
+            FROM bookings
+            WHERE seat=$1
+            AND status IN ('pending','confirmed')
+            AND shift = ANY($2::text[])
+            FOR UPDATE
+            `,
             [
-              seatNumber
+              seatNumber,
+              conflicting
             ]
           );
 
 
-        if (existing.rows.length) {
+        if (
+          existing.rows.length > 0
+        ) {
 
           throw new Error(
             "SEAT_CONFLICT"
@@ -924,12 +1269,13 @@ app.post(
         }
 
 
-        /* =====================================================
+        /* =================================================
            CREATE BOOKING
-           ===================================================== */
+           ================================================= */
 
         await client.query(
-          `INSERT INTO bookings
+          `
+          INSERT INTO bookings
           (
             id,
             name,
@@ -950,7 +1296,8 @@ app.post(
           (
             $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
             $11,'confirmed','pending',$12
-          )`,
+          )
+          `,
           [
             id,
             String(name).trim(),
@@ -968,7 +1315,9 @@ app.post(
         );
 
 
-        await client.query("COMMIT");
+        await client.query(
+          "COMMIT"
+        );
 
 
         res.json({
@@ -992,10 +1341,8 @@ app.post(
         ) {
 
           return res.status(409).json({
-
             error:
-              "This seat is already booked. It remains locked until admin cancellation."
-
+              "This seat is already booked for the selected shift. It remains locked until admin cancellation."
           });
         }
 
@@ -1005,15 +1352,16 @@ app.post(
           e
         );
 
+
         res.status(500).json({
-          error: "Booking failed"
+          error:
+            "Booking failed"
         });
 
 
       } finally {
 
         client.release();
-
       }
 
 
@@ -1025,7 +1373,8 @@ app.post(
       );
 
       res.status(500).json({
-        error: "Booking failed"
+        error:
+          "Booking failed"
       });
     }
   }
@@ -1046,27 +1395,33 @@ app.post(
         bookingId
       } = req.body || {};
 
+
       const booking =
         await one(
           "SELECT * FROM bookings WHERE id=$1",
           [bookingId]
         );
 
+
       if (!booking) {
 
         return res.status(404).json({
-          error: "Booking not found"
+          error:
+            "Booking not found"
         });
       }
+
 
       if (
         booking.status === "cancelled"
       ) {
 
         return res.status(400).json({
-          error: "Booking is cancelled"
+          error:
+            "Booking is cancelled"
         });
       }
+
 
       if (
         booking.payment_status === "paid"
@@ -1078,12 +1433,16 @@ app.post(
         });
       }
 
+
       await query(
-        `UPDATE bookings
-         SET payment_status='submitted'
-         WHERE id=$1`,
+        `
+        UPDATE bookings
+        SET payment_status='submitted'
+        WHERE id=$1
+        `,
         [bookingId]
       );
+
 
       res.json({
         ok: true,
@@ -1123,12 +1482,15 @@ app.post(
           [req.params.id]
         );
 
+
       if (!booking) {
 
         return res.status(404).json({
-          error: "Booking not found"
+          error:
+            "Booking not found"
         });
       }
+
 
       if (
         booking.status === "cancelled"
@@ -1140,20 +1502,26 @@ app.post(
         });
       }
 
+
       await query(
-        `UPDATE bookings
-         SET
-           payment_status='paid',
-           payment_id=$1,
-           paid_at=$2
-         WHERE id=$3`,
+        `
+        UPDATE bookings
+        SET
+          payment_status='paid',
+          payment_id=$1,
+          paid_at=$2
+        WHERE id=$3
+        `,
         [
           "MANUAL-UPI-" +
             Date.now(),
+
           new Date().toISOString(),
+
           booking.id
         ]
       );
+
 
       res.json({
         ok: true,
@@ -1194,12 +1562,15 @@ app.delete(
           [req.params.id]
         );
 
+
       if (!booking) {
 
         return res.status(404).json({
-          error: "Booking not found"
+          error:
+            "Booking not found"
         });
       }
+
 
       if (
         booking.status === "cancelled"
@@ -1211,6 +1582,7 @@ app.delete(
         });
       }
 
+
       const reason =
         String(
           req.body?.reason ||
@@ -1221,13 +1593,15 @@ app.delete(
 
 
       await query(
-        `UPDATE bookings
-         SET
-           status='cancelled',
-           cancelled_at=$1,
-           cancelled_by=$2,
-           cancellation_reason=$3
-         WHERE id=$4`,
+        `
+        UPDATE bookings
+        SET
+          status='cancelled',
+          cancelled_at=$1,
+          cancelled_by=$2,
+          cancellation_reason=$3
+        WHERE id=$4
+        `,
         [
           new Date().toISOString(),
           req.admin.username,
@@ -1277,12 +1651,15 @@ app.delete(
           [req.params.id]
         );
 
+
       if (!booking) {
 
         return res.status(404).json({
-          error: "Booking not found"
+          error:
+            "Booking not found"
         });
       }
+
 
       if (
         booking.status !== "cancelled"
@@ -1294,10 +1671,12 @@ app.delete(
         });
       }
 
+
       await query(
         "DELETE FROM bookings WHERE id=$1",
         [booking.id]
       );
+
 
       res.json({
         ok: true,
@@ -1348,12 +1727,14 @@ app.post(
         ) {
 
           await query(
-            `INSERT INTO settings
-             (key,value)
-             VALUES($1,$2)
-             ON CONFLICT(key)
-             DO UPDATE SET
-               value=EXCLUDED.value`,
+            `
+            INSERT INTO settings
+            (key,value)
+            VALUES($1,$2)
+            ON CONFLICT(key)
+            DO UPDATE SET
+              value=EXCLUDED.value
+            `,
             [
               key,
               String(value)
@@ -1361,6 +1742,7 @@ app.post(
           );
         }
       }
+
 
       res.json({
         ok: true
@@ -1407,6 +1789,7 @@ app.get(
 
 const port =
   process.env.PORT || 3000;
+
 
 initDb()
   .then(() => {
