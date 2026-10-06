@@ -1013,28 +1013,28 @@ function renderSeats() {
         button.dataset.seat = i;
 
 
-        /* BOOKED */
+        /* PAYMENT PENDING / SUBMITTED = ORANGE + LOCKED */
 
-        if (booked.includes(i)) {
-
-            button.classList.add("booked");
-
-            button.disabled = true;
-
-            button.title = "Booked";
-
-        }
-
-
-        /* PAYMENT PENDING / SUBMITTED */
-
-        else if (pending.includes(i)) {
+        if (pending.includes(i)) {
 
             button.classList.add("pending");
 
             button.disabled = true;
 
             button.title = "Payment Pending - only admin can cancel";
+
+        }
+
+
+        /* PAID / CONFIRMED = RED + LOCKED */
+
+        else if (booked.includes(i)) {
+
+            button.classList.add("booked");
+
+            button.disabled = true;
+
+            button.title = "Booked - only admin can cancel";
 
         }
 

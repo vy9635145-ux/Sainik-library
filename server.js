@@ -641,8 +641,11 @@ app.get("/api/seats", async (req, res) => {
         ...new Set(booked)
       ],
 
-      /* Compatibility field: all active seats are now `booked`. */
-      pending: []
+      /* Pending/submitted payments are locked and shown ORANGE.
+         They remain unavailable until an admin cancels the booking. */
+      pending: [
+        ...new Set(pending)
+      ]
 
     });
 
