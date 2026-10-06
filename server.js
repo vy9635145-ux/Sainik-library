@@ -607,13 +607,18 @@ app.get("/api/seats", async (req, res) => {
 
 
       /*
-        IMPORTANT: payment status does NOT control seat availability.
-        Once a booking is created, the seat is locked immediately.
-        It stays RED/BOOKED until admin cancels that booking.
+        Payment status controls the COLOR only.
+        Both pending/submitted and paid bookings remain LOCKED.
+        Only admin cancellation releases the seat.
       */
-      booked.push(
-        seatNumber
-      );
+      const paymentStatus =
+        String(row.payment_status || "").toLowerCase();
+
+      if (paymentStatus === "paid") {
+        booked.push(seatNumber);
+      } else {
+        pending.push(seatNumber);
+      }
     }
 
 

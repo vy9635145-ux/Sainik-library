@@ -1026,16 +1026,15 @@ function renderSeats() {
         }
 
 
-        /* Compatibility fallback: the backend now returns every active
-           booking in `booked`, so this branch normally stays unused. */
+        /* PAYMENT PENDING / SUBMITTED */
 
         else if (pending.includes(i)) {
 
-            button.classList.add("booked");
+            button.classList.add("pending");
 
             button.disabled = true;
 
-            button.title = "Booked - only admin can cancel";
+            button.title = "Payment Pending - only admin can cancel";
 
         }
 
