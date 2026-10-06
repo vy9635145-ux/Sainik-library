@@ -126,7 +126,7 @@ function auth(req,res,next){
 app.get("/api/config",async(req,res)=>{
   try{
     res.json({
-      totalSeats:Number(await setting("total_seats","43")),
+      totalSeats:Number(await setting("total_seats","55")),
       noticeTitle:await setting("notice_title","Admissions & seat booking open"),
       noticeText:await setting("notice_text","Contact the library for membership, timing and seat availability."),
       paymentMode:"upi_manual",
@@ -215,7 +215,7 @@ app.post("/api/bookings",async(req,res)=>{
   const {name,fatherName="",father_name="",mobile,email="",address="",seat,date,shift,plan="Daily"}=req.body||{};
   const father=String(fatherName||father_name||"").trim();
   try{
-    const total=Number(await setting("total_seats","43"));
+    const total=Number(await setting("total_seats","55"));
     if(!name||!father||!address||!/^[0-9]{10}$/.test(mobile)||!Number.isInteger(Number(seat))||Number(seat)<1||Number(seat)>total||!date||!shift)
       return res.status(400).json({error:"Invalid booking details"});
     const amount=amountForPlan(plan);
