@@ -187,14 +187,12 @@ h2 {
 
 
 /* =========================================================
-   ORANGE = PAYMENT PENDING / SUBMITTED
+   ACTIVE BOOKING = LOCKED
    =========================================================
 
-   Backend:
-   payment_status = pending
-   payment_status = submitted
-
-   Both will be orange.
+   Every active booking is RED/BOOKED immediately.
+   Payment verification does not release the seat.
+   Only admin cancellation releases the seat.
    ========================================================= */
 
 .seat.held,
@@ -208,7 +206,7 @@ h2 {
 
 
 /* =========================================================
-   RED = PAYMENT PAID / CONFIRMED
+   RED = BOOKED / LOCKED UNTIL ADMIN CANCELS
    ========================================================= */
 
 .seat.booked {
@@ -815,7 +813,7 @@ textarea {
 <div class="card">
 <label>Date</label><input id="date" type="date">
 <label>Shift</label><select id="shift"><option>Morning</option><option>Evening</option><option>Full Day</option></select>
-<div class="legend"><span><i class="dot free"></i>Available</span><span><i class="dot taken"></i>Booked</span><span><i class="dot" style="background:#fb923c"></i>Payment Pending</span><span><i class="dot chosen"></i>Selected</span></div>
+<div class="legend"><span><i class="dot free"></i>Available</span><span><i class="dot taken"></i>Booked</span><span><i class="dot chosen"></i>Selected</span></div>
 <div id="seats" class="seats"></div>
 
 <p>Selected: <b id="selectedSeat">None</b></p>
@@ -1028,15 +1026,16 @@ function renderSeats() {
         }
 
 
-        /* PAYMENT PENDING */
+        /* Compatibility fallback: the backend now returns every active
+           booking in `booked`, so this branch normally stays unused. */
 
         else if (pending.includes(i)) {
 
-            button.classList.add("pending");
+            button.classList.add("booked");
 
             button.disabled = true;
 
-            button.title = "Payment Pending";
+            button.title = "Booked - only admin can cancel";
 
         }
 

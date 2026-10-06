@@ -606,56 +606,38 @@ app.get("/api/seats", async (req, res) => {
       }
 
 
-      const paymentStatus =
-        String(
-          row.payment_status || ""
-        ).toLowerCase();
-
-
       /*
-        PAID
-        -> RED
+        IMPORTANT: payment status does NOT control seat availability.
+        Once a booking is created, the seat is locked immediately.
+        It stays RED/BOOKED until admin cancels that booking.
       */
-
-      if (
-        paymentStatus === "paid"
-      ) {
-
-        booked.push(
-          seatNumber
-        );
-
-      }
-
-
-      /*
-        PENDING / SUBMITTED
-        -> ORANGE
-      */
-
-      else {
-
-        pending.push(
-          seatNumber
-        );
-      }
+      booked.push(
+        seatNumber
+      );
     }
 
+
+    const totalSeats =
+      Number(
+        await setting(
+          "total_seats",
+          "55"
+        )
+      );
 
     res.json({
 
       totalSeats:
-        Number.isInteger(total) && total > 0
-          ? total
+        Number.isInteger(totalSeats) && totalSeats > 0
+          ? totalSeats
           : 55,
 
       booked: [
         ...new Set(booked)
       ],
 
-      pending: [
-        ...new Set(pending)
-      ]
+      /* Compatibility field: all active seats are now `booked`. */
+      pending: []
 
     });
 
