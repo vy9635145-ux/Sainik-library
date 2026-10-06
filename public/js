@@ -520,14 +520,6 @@ app.get("/api/seats", async (req, res) => {
 
   try {
 
-    const total =
-      Number(
-        await setting(
-          "total_seats",
-          "55"
-        )
-      );
-
     let allowedShifts;
 
 
@@ -651,11 +643,6 @@ app.get("/api/seats", async (req, res) => {
 
 
     res.json({
-
-      totalSeats:
-        Number.isInteger(total) && total > 0
-          ? total
-          : 55,
 
       booked: [
         ...new Set(booked)
@@ -1717,45 +1704,6 @@ app.delete(
    ADMIN SETTINGS
    ========================================================= */
 
-app.get(
-  "/api/settings",
-  auth,
-  async (req, res) => {
-
-    try {
-
-      const rows = await all(
-        `
-        SELECT key, value
-        FROM settings
-        ORDER BY key
-        `
-      );
-
-      const settings = {};
-
-      for (const row of rows) {
-        settings[row.key] = row.value;
-      }
-
-      res.json(settings);
-
-    } catch (e) {
-
-      console.error(
-        "Get settings error:",
-        e
-      );
-
-      res.status(500).json({
-        error:
-          "Could not load settings"
-      });
-    }
-  }
-);
-
-
 app.post(
   "/api/settings",
   auth,
@@ -1820,14 +1768,11 @@ app.post(
    FRONTEND FALLBACK
    ========================================================= */
 
-app.use((req, res, next) => {
+app.get(
+  "*",
+  (req, res) => {
 
-  if (
-    req.method === "GET" &&
-    !req.path.startsWith("/api/")
-  ) {
-
-    return res.sendFile(
+    res.sendFile(
       path.join(
         __dirname,
         "public",
@@ -1835,39 +1780,7 @@ app.use((req, res, next) => {
       )
     );
   }
-
-  next();
-});
-
-
-app.use((req, res) => {
-
-  res.status(404).json({
-    error: "Not found"
-  });
-});
-
-
-/* =========================================================
-   ERROR HANDLER
-   ========================================================= */
-
-app.use((err, req, res, next) => {
-
-  console.error(
-    "Unhandled server error:",
-    err
-  );
-
-  if (res.headersSent) {
-    return next(err);
-  }
-
-  res.status(500).json({
-    error:
-      "Internal server error"
-  });
-});
+);
 
 
 /* =========================================================
