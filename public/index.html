@@ -858,10 +858,54 @@ textarea {
 <button class="btn close" onclick="modal.classList.remove('on')">Close</button>
 </div></div>
 <script>
-const API_BASE = 'https://sainik-library.onrender.com';
+/* =========================================================
+   SAINIK LIBRARY - MAIN FRONTEND JAVASCRIPT
+   ========================================================= */
 
-function apiFetch(path, options = {}) {
-  return fetch(API_BASE + path, options);
+const API_BASE = "https://sainik-library.onrender.com";
+
+
+/* =========================================================
+   BASIC HELPERS
+   ========================================================= */
+
+const $ = (id) => document.getElementById(id);
+
+
+async function apiFetch(url, options = {}) {
+
+  const finalUrl =
+    url.startsWith("http")
+      ? url
+      : API_BASE + url;
+
+  const response =
+    await fetch(finalUrl, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {})
+      }
+    });
+
+  let data = null;
+
+  try {
+    data = await response.json();
+  } catch {
+    data = {};
+  }
+
+  if (!response.ok) {
+
+    throw new Error(
+      data.error ||
+      data.message ||
+      "Something went wrong"
+    );
+  }
+
+  return data;
 }
 
 
@@ -869,327 +913,162 @@ function apiFetch(path, options = {}) {
    GLOBAL VARIABLES
    ========================================================= */
 
-let selected = null;
-let booking = null;
-let config = {};
+let selectedSeat = null;
 
-const $ = x => document.getElementById(x);
+let currentSeatsData = {
+  booked: [],
+  pending: []
+};
 
-
-/* =========================================================
-   TODAY'S DATE
-   ========================================================= */
-
-let today = new Date();
-
-today.setMinutes(
-  today.getMinutes() - today.getTimezoneOffset()
-);
-
-if ($('date')) {
-  $('date').value = today.toISOString().slice(0, 10);
-}
+let totalSeats = 55;
 
 
 /* =========================================================
-   SUCCESS STUDENTS
+   LOAD CONFIG
    ========================================================= */
 
-let successIndex = 0;
-let successTimer = null;
-
-
-async function loadSuccessStudents() {
+async function loadConfig() {
 
   try {
 
-    const r = await apiFetch(
-      '/api/success-students'
-    );
+    const config =
+      await apiFetch("/api/config");
 
-    const list = await r.json();
 
-    const track =
-      document.getElementById('successTrack');
+    totalSeats =
+      Number(config.totalSeats) || 55;
 
-    const dots =
-      document.getElementById('successDots');
 
-    const viewport =
-      document.getElementById('successViewport');
+    /*
+      Notice
+    */
 
+    const noticeTitle =
+      $("noticeTitle");
+
+    if (noticeTitle && config.noticeTitle) {
+      noticeTitle.textContent =
+        config.noticeTitle;
+    }
+
+
+    const noticeText =
+      $("noticeText");
+
+    if (noticeText && config.noticeText) {
+      noticeText.textContent =
+        config.noticeText;
+    }
+
+
+    /*
+      Payment amount
+    */
+
+    const paymentAmount =
+      $("paymentAmount");
 
     if (
-      !Array.isArray(list) ||
-      !list.length
+      paymentAmount &&
+      config.paymentAmount
     ) {
 
-      if (viewport) {
-        viewport.style.display = 'none';
-      }
-
-      if (dots) {
-        dots.style.display = 'none';
-      }
-
-      return;
+      paymentAmount.textContent =
+        "₹" + config.paymentAmount;
     }
 
 
-    if (viewport) {
-      viewport.style.display = 'block';
-    }
+    /*
+      UPI ID
+    */
 
-    if (dots) {
-      dots.style.display = 'flex';
-    }
+    const upiId =
+      $("upiId");
 
-    if (!track) return;
+    if (
+      upiId &&
+      config.upiId
+    ) {
 
-
-    track.innerHTML = list.map(s => `
-
-      <div class="success-slide">
-
-        <article class="success-card">
-
-          ${
-            s.photo
-              ? `
-                <img
-                  src="${escapeHtml(s.photo)}"
-                  alt="${escapeHtml(
-                    s.name || 'Success Student'
-                  )}"
-                >
-              `
-              : `
-                <div
-                  class="success-card"
-                  style="
-                    padding:0;
-                    background:#f1f5f9
-                  "
-                ></div>
-              `
-          }
-
-
-          <div>
-
-            <span class="success-badge">
-              SUCCESS STUDENT
-            </span>
-
-            <h3>
-              ${escapeHtml(
-                s.name || ''
-              )}
-            </h3>
-
-            <p class="muted">
-              ${escapeHtml(
-                s.bio ||
-                'Proudly prepared at Sainik Library.'
-              )}
-            </p>
-
-
-            <div class="success-meta">
-
-              <div>
-                <b>Selected for</b><br>
-                ${escapeHtml(
-                  s.selected_for || '—'
-                )}
-              </div>
-
-              <div>
-                <b>Selected at</b><br>
-                ${escapeHtml(
-                  s.selected_place || '—'
-                )}
-              </div>
-
-              <div>
-                <b>Library period</b><br>
-                ${escapeHtml(
-                  s.library_from || '—'
-                )}
-                →
-                ${escapeHtml(
-                  s.library_to || '—'
-                )}
-              </div>
-
-            </div>
-
-          </div>
-
-        </article>
-
-      </div>
-
-    `).join('');
-
-
-    if (dots) {
-
-      dots.innerHTML = list.map((_, i) => `
-
-        <button
-          class="success-dot ${
-            i === 0 ? 'active' : ''
-          }"
-          onclick="showSuccess(${i})"
-          aria-label="Student ${i + 1}"
-        ></button>
-
-      `).join('');
-
+      upiId.textContent =
+        config.upiId;
     }
 
 
-    successIndex = 0;
-
-    showSuccess(0);
-
-
-    clearInterval(successTimer);
-
-
-    successTimer = setInterval(() => {
-
-      showSuccess(
-        (successIndex + 1) % list.length
-      );
-
-    }, 4500);
-
-
-  } catch (e) {
+  } catch (error) {
 
     console.error(
-      'Success students error:',
-      e
+      "Config loading error:",
+      error
     );
-
   }
-}
-
-
-function showSuccess(i) {
-
-  const track =
-    document.getElementById(
-      'successTrack'
-    );
-
-
-  if (
-    !track ||
-    !track.children.length
-  ) {
-    return;
-  }
-
-
-  successIndex = i;
-
-
-  track.style.transform =
-    `translateX(-${i * 100}%)`;
-
-
-  document
-    .querySelectorAll('.success-dot')
-    .forEach((d, n) => {
-
-      d.classList.toggle(
-        'active',
-        n === i
-      );
-
-    });
-
 }
 
 
 /* =========================================================
-   PERMANENT SEAT AVAILABILITY
+   SHIFT HELPERS
+   ========================================================= */
+
+function getSelectedShift() {
+
+  const shiftElement =
+    $("shift");
+
+  if (!shiftElement) {
+    return "";
+  }
+
+  return String(
+    shiftElement.value || ""
+  ).trim();
+}
+
+
+/* =========================================================
+   SEAT AVAILABILITY
    =========================================================
-
-   EXACT RULE:
-
-   Existing Morning:
-       Morning  = BOOKED
-       Evening  = FREE
-       Full Day = BOOKED
-
-   Existing Evening:
-       Morning  = FREE
-       Evening  = BOOKED
-       Full Day = BOOKED
-
-   Existing Full Day:
-       Morning  = BOOKED
-       Evening  = BOOKED
-       Full Day = BOOKED
-
-
-   PAYMENT STATUS:
-
-   PAID
-       -> RED
-
-   PENDING / SUBMITTED
-       -> ORANGE
-
-   FREE
-       -> GREEN
-
-   SELECTED
-       -> GOLD
-
 
    IMPORTANT:
 
-   DATE IS NOT USED FOR SEAT AVAILABILITY.
+   Date is NOT used for seat availability.
 
-   Admin cancellation releases the booking.
+   Selected shift is sent to backend.
+
+   Morning:
+      Morning  -> blocked
+      Full Day -> blocked
+      Evening  -> free
+
+   Evening:
+      Evening  -> blocked
+      Full Day -> blocked
+      Morning  -> free
+
+   Full Day:
+      Morning  -> blocked
+      Evening  -> blocked
+      Full Day -> blocked
+
    ========================================================= */
 
 async function seats() {
 
-  const seatsBox = $('seats');
-
-  if (!seatsBox) {
-    return;
-  }
+  const shift =
+    getSelectedShift();
 
 
-  const shiftElement = $('shift');
+  if (
+    ![
+      "Morning",
+      "Evening",
+      "Full Day"
+    ].includes(shift)
+  ) {
 
-  if (!shiftElement) {
-    return;
-  }
-
-
-  const shift = shiftElement.value;
-
-
-  /*
-     User has not selected a shift yet.
-  */
-
-  if (!shift) {
-
-    seatsBox.innerHTML = `
-      <p class="muted">
-        Please select Morning, Evening or Full Day
-        to view seat availability.
-      </p>
-    `;
+    renderSeats({
+      booked: [],
+      pending: []
+    });
 
     return;
   }
@@ -1198,874 +1077,370 @@ async function seats() {
   try {
 
     /*
-       IMPORTANT:
+      IMPORTANT:
+      Date intentionally NOT sent.
 
-       Shift is now sent to backend.
-
-       Date is intentionally NOT sent.
+      Backend decides availability
+      according to selected shift.
     */
 
-    const r = await apiFetch(
-      '/api/seats?shift=' +
-      encodeURIComponent(shift)
-    );
-
-
-    const j = await r.json();
-
-
-    if (!r.ok) {
-
-      console.error(
-        'Seats API error:',
-        j
+    const data =
+      await apiFetch(
+        "/api/seats?shift=" +
+        encodeURIComponent(shift)
       );
 
-      seatsBox.innerHTML = `
-        <p style="color:red">
-          Seat availability load nahi ho rahi.
-        </p>
-      `;
 
-      return;
-    }
-
-
-    seatsBox.innerHTML = '';
-
-
-    /*
-       RED SEATS
-
-       Payment confirmed
-       PAID
-    */
-
-    const booked = new Set(
-      (j.booked || []).map(Number)
-    );
-
-
-    /*
-       ORANGE SEATS
-
-       PENDING / SUBMITTED
-    */
-
-    const pending = new Set(
-      (j.pending || []).map(Number)
-    );
-
-
-    /*
-       Total seats
-
-       Backend config se 55,
-       fallback 55.
-    */
-
-    const totalSeats =
-      Number(config.totalSeats || 55);
-
-
-    /*
-       Create seats
-    */
-
-    for (
-      let i = 1;
-      i <= totalSeats;
-      i++
-    ) {
-
-      const x =
-        document.createElement('button');
-
-
-      x.type = 'button';
-
-
-      x.textContent = 'S' + i;
-
-
-      /*
-       =================================
-       RED = PAID / BOOKED
-       =================================
-      */
-
-      if (booked.has(i)) {
-
-        x.className =
-          'seat booked';
-
-        x.disabled = true;
-
-        x.title =
-          `S${i} is booked for ${shift}`;
-
-      }
-
-
-      /*
-       =================================
-       ORANGE = PENDING / SUBMITTED
-       =================================
-      */
-
-      else if (pending.has(i)) {
-
-        x.className =
-          'seat pending';
-
-        x.disabled = true;
-
-        x.title =
-          `S${i} has a pending payment for ${shift}`;
-
-      }
-
-
-      /*
-       =================================
-       GREEN = FREE
-       =================================
-      */
-
-      else {
-
-        x.className =
-          'seat free';
-
-
-        /*
-           Selected seat
-        */
-
-        if (selected === i) {
-
-          x.classList.add('sel');
-
-        }
-
-
-        x.disabled = false;
-
-
-        x.title =
-          `S${i} is available for ${shift}`;
-
-
-        /*
-           Select seat
-        */
-
-        x.onclick = () => {
-
-          selected = i;
-
-
-          if ($('selected')) {
-
-            $('selected').textContent =
-              'S' + i;
-
-          }
-
-
-          /*
-             Re-render seats.
-
-             Selected seat becomes GOLD.
-          */
-
-          seats();
-
-        };
-
-      }
-
-
-      seatsBox.appendChild(x);
-
-    }
-
-
-  } catch (e) {
-
-    console.error(
-      'Seat loading error:',
-      e
-    );
-
-
-    seatsBox.innerHTML = `
-      <p style="color:red">
-        Unable to load seats.
-      </p>
-    `;
-
-  }
-
-}
-
-
-/* =========================================================
-   RECEIPT
-   ========================================================= */
-
-function showReceipt() {
-
-  if (!$('receipt') || !booking) {
-    return;
-  }
-
-
-  $('receipt').innerHTML =
-
-    '<b>Booking ID:</b> ' +
-    escapeHtml(booking.id) +
-
-    '<br><b>Student:</b> ' +
-    escapeHtml(booking.name) +
-
-    '<br><b>Seat:</b> S' +
-    escapeHtml(booking.seat) +
-
-    '<br><b>Date:</b> ' +
-    escapeHtml(booking.date) +
-
-    '<br><b>Shift:</b> ' +
-    escapeHtml(booking.shift) +
-
-    '<br><b>Plan:</b> ' +
-    escapeHtml(booking.plan) +
-
-    '<br><b>Amount:</b> ₹' +
-    escapeHtml(booking.amount);
-}
-
-
-/* =========================================================
-   HTML ESCAPE
-   ========================================================= */
-
-function escapeHtml(v) {
-
-  return String(v).replace(
-    /[&<>"']/g,
-
-    m => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#039;'
-
-    }[m])
-  );
-
-}
-
-
-/* =========================================================
-   BOOKING
-   ========================================================= */
-
-async function book() {
-
-  /*
-     Seat select check
-  */
-
-  if (!selected) {
-
-    return alert(
-      'Select an available seat.'
-    );
-
-  }
-
-
-  /*
-     Shift check
-  */
-
-  if (
-    !$('shift') ||
-    !$('shift').value
-  ) {
-
-    return alert(
-      'Please select a shift.'
-    );
-
-  }
-
-
-  /*
-     Student information validation
-  */
-
-  if (
-
-    !$('name').value.trim() ||
-
-    !$('fatherName').value.trim() ||
-
-    !$('address').value.trim() ||
-
-    !/^\d{10}$/.test(
-      $('mobile').value
-    )
-
-  ) {
-
-    return alert(
-      'Enter student name, father name, full address and valid 10-digit mobile.'
-    );
-
-  }
-
-
-  /*
-     Store selected seat
-     before sending booking.
-  */
-
-  const seatAtBooking =
-    selected;
-
-
-  try {
-
-    const r = await apiFetch(
-      '/api/bookings',
-      {
-
-        method: 'POST',
-
-        headers: {
-          'Content-Type':
-            'application/json'
-        },
-
-        body: JSON.stringify({
-
-          name:
-            $('name')
-              .value
-              .trim(),
-
-          fatherName:
-            $('fatherName')
-              .value
-              .trim(),
-
-          mobile:
-            $('mobile')
-              .value,
-
-          email:
-            $('email')
-              .value,
-
-          address:
-            $('address')
-              .value
-              .trim(),
-
-          seat:
-            seatAtBooking,
-
-          date:
-            $('date')
-              .value,
-
-          shift:
-            $('shift')
-              .value,
-
-          plan:
-            $('plan')
-              .value
-
-        })
-
-      }
-    );
-
-
-    const j =
-      await r.json();
-
-
-    /*
-       Booking failed
-    */
-
-    if (!r.ok) {
-
-      selected = null;
-
-
-      if ($('selected')) {
-
-        $('selected').textContent =
-          'None';
-
-      }
-
-
-      seats();
-
-
-      return alert(
-        j.error ||
-        'Booking failed.'
-      );
-
-    }
-
-
-    /*
-       Booking successful
-    */
-
-    booking = {
-
-      ...j,
-
-      name:
-        $('name').value,
-
-      fatherName:
-        $('fatherName').value,
-
-      mobile:
-        $('mobile').value,
-
-      address:
-        $('address')
-          .value
-          .trim(),
-
-      seat:
-        seatAtBooking,
-
-      date:
-        $('date').value,
-
-      shift:
-        $('shift').value,
-
-      plan:
-        $('plan').value
-
+    currentSeatsData = {
+      booked:
+        Array.isArray(data.booked)
+          ? data.booked.map(Number)
+          : [],
+
+      pending:
+        Array.isArray(data.pending)
+          ? data.pending.map(Number)
+          : []
     };
 
 
     /*
-       Show receipt
+      If currently selected seat has
+      become unavailable, remove selection.
     */
 
-    showReceipt();
+    const selected =
+      Number(selectedSeat);
 
 
-    /*
-       Payment status
-    */
+    if (
+      selected &&
+      (
+        currentSeatsData.booked.includes(selected) ||
+        currentSeatsData.pending.includes(selected)
+      )
+    ) {
 
-    $('paymentStatus').textContent =
-      'Payment pending. Your seat is already booked for the selected shift. Complete payment, then click "I Have Paid".';
-
-
-    /*
-       Paid button
-    */
-
-    $('paidBtn').disabled =
-      false;
-
-    $('paidBtn').style.display =
-      'inline-block';
-
-
-    /*
-       WhatsApp button initially hidden
-    */
-
-    $('wa').style.display =
-      'none';
-
-
-    /*
-       Open payment modal
-    */
-
-    $('modal')
-      .classList
-      .add('on');
-
-
-    /*
-       Clear selected seat
-    */
-
-    selected = null;
-
-
-    if ($('selected')) {
-
-      $('selected').textContent =
-        'None';
-
+      selectedSeat = null;
     }
 
 
-    /*
-       Reload seats.
-
-       Newly booked pending seat
-       should become ORANGE.
-    */
-
-    seats();
+    renderSeats(
+      currentSeatsData
+    );
 
 
-    /*
-       Setup UPI
-    */
-
-    await setupUpi();
-
-
-  } catch (e) {
+  } catch (error) {
 
     console.error(
-      'Booking error:',
-      e
+      "Seat loading error:",
+      error
     );
 
 
-    alert(
-      'Booking failed. Please try again.'
-    );
+    const container =
+      $("seats");
 
+
+    if (container) {
+
+      container.innerHTML = `
+        <div class="seat-error">
+          Unable to load seats. Please try again.
+        </div>
+      `;
+    }
   }
-
 }
 
 
 /* =========================================================
-   UPI PAYMENT
+   RENDER SEATS
    ========================================================= */
 
-async function setupUpi() {
+function renderSeats(data = {}) {
 
-  try {
-
-    if (!$('payAmount') || !booking) {
-      return;
-    }
+  const container =
+    $("seats");
 
 
-    $('payAmount')
-      .textContent =
-      booking.amount;
-
-
-    $('upiText')
-      .textContent =
-      config.upiId ||
-      'UPI ID not configured';
-
-
-    $('upiName')
-      .textContent =
-      config.upiName ||
-      'Sainik Library';
-
-
-    const r =
-      await apiFetch(
-        '/api/payment/qr?amount=' +
-        encodeURIComponent(
-          booking.amount
-        ) +
-        '&bookingId=' +
-        encodeURIComponent(
-          booking.id
-        )
-      );
-
-
-    const j =
-      await r.json();
-
-
-    if (!r.ok) {
-
-      $('paymentStatus')
-        .textContent =
-        j.error ||
-        'Payment setup failed.';
-
-      return;
-    }
-
-
-    booking.upiLink =
-      j.upiLink;
-
-
-    if ($('paymentQr')) {
-
-      $('paymentQr').src =
-        j.qrDataUrl;
-
-    }
-
-
-  } catch (e) {
-
-    console.error(
-      'UPI setup error:',
-      e
-    );
-
-
-    if ($('paymentStatus')) {
-
-      $('paymentStatus')
-        .textContent =
-        'Payment setup failed.';
-
-    }
-
-  }
-
-}
-
-
-/* =========================================================
-   OPEN UPI APP
-   ========================================================= */
-
-function openUpi(type) {
-
-  if (
-    !booking ||
-    !booking.upiLink
-  ) {
-
-    return alert(
-      'Payment QR/link is not ready.'
-    );
-
-  }
-
-
-  const link =
-    booking.upiLink;
-
-
-  /*
-     PhonePe
-  */
-
-  if (type === 'phonepe') {
-
-    const u =
-      link.replace(
-        /^upi:\/\//,
-        'phonepe://'
-      );
-
-    window.location.href =
-      u;
-
-  }
-
-
-  /*
-     Google Pay
-  */
-
-  else if (type === 'gpay') {
-
-    const u =
-      link.replace(
-        /^upi:\/\//,
-        'tez://'
-      );
-
-    window.location.href =
-      u;
-
-  }
-
-
-  /*
-     Normal UPI
-  */
-
-  else {
-
-    window.location.href =
-      link;
-
-  }
-
-}
-
-
-/* =========================================================
-   PAYMENT CLAIM
-   ========================================================= */
-
-async function markPaid() {
-
-  if (
-    !booking ||
-    !booking.id
-  ) {
+  if (!container) {
     return;
   }
 
 
-  $('paidBtn').disabled =
-    true;
+  const booked =
+    Array.isArray(data.booked)
+      ? data.booked.map(Number)
+      : [];
 
 
-  try {
+  const pending =
+    Array.isArray(data.pending)
+      ? data.pending.map(Number)
+      : [];
 
-    const r =
-      await apiFetch(
-        '/api/payment/claim',
-        {
 
-          method: 'POST',
+  container.innerHTML = "";
 
-          headers: {
-            'Content-Type':
-              'application/json'
-          },
 
-          body:
-            JSON.stringify({
+  for (
+    let seatNumber = 1;
+    seatNumber <= totalSeats;
+    seatNumber++
+  ) {
 
-              bookingId:
-                booking.id
+    const button =
+      document.createElement("button");
 
-            })
 
-        }
+    button.type = "button";
+
+
+    button.className =
+      "seat";
+
+
+    button.dataset.seat =
+      seatNumber;
+
+
+    button.textContent =
+      "S" + seatNumber;
+
+
+    /*
+      PAID / BOOKED
+      RED
+    */
+
+    if (
+      booked.includes(seatNumber)
+    ) {
+
+      button.classList.add(
+        "booked"
       );
 
+      button.disabled = true;
 
-    const j =
-      await r.json();
-
-
-    if (!r.ok) {
-
-      $('paidBtn').disabled =
-        false;
-
-      return alert(
-        j.error ||
-        'Could not submit payment status.'
-      );
-
+      button.title =
+        "Booked";
     }
 
 
     /*
-       Payment submitted
+      PENDING / SUBMITTED
+      ORANGE
     */
 
-    $('paymentStatus')
-      .innerHTML =
-      '🟡 <b>Payment proof submitted.</b> Please send your payment receipt/screenshot on WhatsApp. Admin will verify the payment; your seat remains booked for the selected shift.';
+    else if (
+      pending.includes(seatNumber)
+    ) {
+
+      button.classList.add(
+        "pending"
+      );
+
+      button.disabled = true;
+
+      button.title =
+        "Payment pending";
+    }
 
 
     /*
-       WhatsApp message
+      CURRENTLY SELECTED
+      GOLD
     */
 
-    const text =
+    else if (
+      Number(selectedSeat) ===
+      seatNumber
+    ) {
 
-      'Namaste Sainik Library, I have paid for booking ' +
+      button.classList.add(
+        "sel"
+      );
 
-      booking.id +
-
-      '. Please verify my payment. Name: ' +
-
-      booking.name +
-
-      ', Seat: S' +
-
-      booking.seat +
-
-      ', Date: ' +
-
-      booking.date +
-
-      ', Shift: ' +
-
-      booking.shift +
-
-      ', Amount: ₹' +
-
-      booking.amount +
-
-      '. I will send the payment receipt/screenshot here.';
+      button.title =
+        "Selected";
+    }
 
 
     /*
-       CORRECT WhatsApp URL
+      FREE
+      GREEN
     */
 
-    $('wa').href =
-      'https://wa.me/918765196654?text=' +
-      encodeURIComponent(text);
+    else {
+
+      button.classList.add(
+        "free"
+      );
+
+      button.title =
+        "Available";
 
 
-    $('wa').textContent =
-      '💬 Send Payment Receipt on WhatsApp';
+      button.addEventListener(
+        "click",
+        () => {
+
+          selectSeat(
+            seatNumber
+          );
+
+        }
+      );
+    }
 
 
-    $('wa').style.display =
-      'inline-block';
-
-
-    /*
-       Seat remains ORANGE
-       because payment is submitted.
-    */
-
-    seats();
-
-
-  } catch (e) {
-
-    console.error(
-      'Payment claim error:',
-      e
+    container.appendChild(
+      button
     );
+  }
+}
 
 
-    $('paidBtn').disabled =
-      false;
+/* =========================================================
+   SELECT SEAT
+   ========================================================= */
 
+function selectSeat(seatNumber) {
+
+  const shift =
+    getSelectedShift();
+
+
+  if (
+    ![
+      "Morning",
+      "Evening",
+      "Full Day"
+    ].includes(shift)
+  ) {
 
     alert(
-      'Could not submit payment status.'
+      "Please select a shift first."
     );
 
+    return;
   }
 
+
+  const number =
+    Number(seatNumber);
+
+
+  if (
+    currentSeatsData.booked.includes(number)
+  ) {
+
+    alert(
+      "This seat is already booked."
+    );
+
+    return;
+  }
+
+
+  if (
+    currentSeatsData.pending.includes(number)
+  ) {
+
+    alert(
+      "This seat is currently pending."
+    );
+
+    return;
+  }
+
+
+  selectedSeat =
+    number;
+
+
+  const seatInput =
+    $("seat");
+
+  if (seatInput) {
+    seatInput.value =
+      number;
+  }
+
+
+  /*
+    Update visual selection
+  */
+
+  renderSeats(
+    currentSeatsData
+  );
+
+
+  /*
+    Optional selected-seat display
+  */
+
+  const selectedSeatText =
+    $("selectedSeat");
+
+  if (selectedSeatText) {
+
+    selectedSeatText.textContent =
+      "S" + number;
+  }
+}
+
+
+/* =========================================================
+   SHIFT CHANGE
+   ========================================================= */
+
+const shiftElement =
+  $("shift");
+
+
+if (shiftElement) {
+
+  shiftElement.addEventListener(
+    "change",
+    async () => {
+
+      /*
+        Old selected seat is cleared
+        when user changes shift.
+      */
+
+      selectedSeat = null;
+
+
+      const seatInput =
+        $("seat");
+
+      if (seatInput) {
+        seatInput.value = "";
+      }
+
+
+      const selectedSeatText =
+        $("selectedSeat");
+
+      if (selectedSeatText) {
+        selectedSeatText.textContent =
+          "None";
+      }
+
+
+      /*
+        Load seats according to
+        new shift.
+      */
+
+      await seats();
+    }
+  );
 }
 
 
@@ -2075,183 +1450,1310 @@ async function markPaid() {
 
    IMPORTANT:
 
-   Date is only booking information.
+   Date does NOT control seat availability.
 
-   Date DOES NOT control seat availability.
+   We can still reload the UI,
+   but backend ignores date.
 
-   Changing date will NOT make a permanently
-   booked seat free.
    ========================================================= */
 
-if ($('date')) {
-
-  $('date').onchange = () => {
-
-    selected = null;
+const dateElement =
+  $("date");
 
 
-    if ($('selected')) {
+if (dateElement) {
 
-      $('selected').textContent =
-        'None';
+  dateElement.addEventListener(
+    "change",
+    async () => {
 
+      /*
+        Do NOT clear booked seats based
+        on date.
+
+        Seat availability is permanent
+        until admin cancellation.
+      */
+
+      await seats();
     }
-
-
-    /*
-       Reload seats.
-
-       Backend ignores date.
-    */
-
-    seats();
-
-  };
-
+  );
 }
 
 
 /* =========================================================
-   SHIFT CHANGE
-   =========================================================
-
-   IMPORTANT:
-
-   Shift DOES control which existing bookings
-   are shown as blocked.
-
-   RULE:
-
-   Existing Morning:
-       Morning  = ❌
-       Evening  = ✅
-       Full Day = ❌
-
-   Existing Evening:
-       Morning  = ✅
-       Evening  = ❌
-       Full Day = ❌
-
-   Existing Full Day:
-       Morning  = ❌
-       Evening  = ❌
-       Full Day = ❌
+   PLAN AMOUNT
    ========================================================= */
 
-if ($('shift')) {
+function getPlanAmount(plan) {
 
-  $('shift').onchange = () => {
+  const amounts = {
 
-    /*
-       New shift selected,
-       so previous seat selection
-       must be cleared.
-    */
+    Daily:
+      50,
 
-    selected = null;
+    Monthly:
+      500,
 
-
-    if ($('selected')) {
-
-      $('selected').textContent =
-        'None';
-
-    }
-
-
-    /*
-       Reload seats for the
-       newly selected shift.
-    */
-
-    seats();
-
+    Quarterly:
+      1500
   };
 
+
+  return (
+    amounts[plan] ||
+    500
+  );
 }
 
 
 /* =========================================================
-   LOAD CONFIG
+   FORM VALUES
    ========================================================= */
 
-apiFetch('/api/config')
+function getFormValue(id) {
 
-  .then(r => {
+  const element =
+    $(id);
 
-    if (!r.ok) {
+  return element
+    ? String(element.value || "").trim()
+    : "";
+}
 
-      throw new Error(
-        'Config request failed'
+
+/* =========================================================
+   CREATE BOOKING
+   ========================================================= */
+
+async function createBooking(event) {
+
+  if (event) {
+    event.preventDefault();
+  }
+
+
+  const name =
+    getFormValue("name");
+
+
+  const fatherName =
+    getFormValue("fatherName") ||
+    getFormValue("father_name");
+
+
+  const mobile =
+    getFormValue("mobile");
+
+
+  const email =
+    getFormValue("email");
+
+
+  const address =
+    getFormValue("address");
+
+
+  const date =
+    getFormValue("date");
+
+
+  const shift =
+    getFormValue("shift");
+
+
+  const planElement =
+    $("plan");
+
+
+  const plan =
+    planElement
+      ? planElement.value
+      : "Daily";
+
+
+  const seat =
+    Number(
+      selectedSeat ||
+      getFormValue("seat")
+    );
+
+
+  /*
+    Validation
+  */
+
+  if (!name) {
+
+    alert(
+      "Please enter your name."
+    );
+
+    return;
+  }
+
+
+  if (!fatherName) {
+
+    alert(
+      "Please enter father's name."
+    );
+
+    return;
+  }
+
+
+  if (
+    !/^[0-9]{10}$/.test(
+      mobile
+    )
+  ) {
+
+    alert(
+      "Please enter a valid 10-digit mobile number."
+    );
+
+    return;
+  }
+
+
+  if (!address) {
+
+    alert(
+      "Please enter your address."
+    );
+
+    return;
+  }
+
+
+  if (!date) {
+
+    alert(
+      "Please select a date."
+    );
+
+    return;
+  }
+
+
+  if (
+    ![
+      "Morning",
+      "Evening",
+      "Full Day"
+    ].includes(shift)
+  ) {
+
+    alert(
+      "Please select a valid shift."
+    );
+
+    return;
+  }
+
+
+  if (
+    !Number.isInteger(seat) ||
+    seat < 1
+  ) {
+
+    alert(
+      "Please select a seat."
+    );
+
+    return;
+  }
+
+
+  /*
+    Final local check before sending.
+  */
+
+  if (
+    currentSeatsData.booked.includes(seat)
+  ) {
+
+    alert(
+      "This seat is already booked."
+    );
+
+    await seats();
+
+    return;
+  }
+
+
+  if (
+    currentSeatsData.pending.includes(seat)
+  ) {
+
+    alert(
+      "This seat is currently pending."
+    );
+
+    await seats();
+
+    return;
+  }
+
+
+  const amount =
+    getPlanAmount(plan);
+
+
+  const submitButton =
+    $("bookingSubmit") ||
+    $("submitBooking") ||
+    document.querySelector(
+      'button[type="submit"]'
+    );
+
+
+  if (submitButton) {
+
+    submitButton.disabled =
+      true;
+
+    submitButton.dataset.oldText =
+      submitButton.textContent;
+
+    submitButton.textContent =
+      "Booking...";
+  }
+
+
+  try {
+
+    /*
+      IMPORTANT:
+
+      date is stored in database,
+      but backend DOES NOT use date
+      to decide seat availability.
+    */
+
+    const result =
+      await apiFetch(
+        "/api/bookings",
+        {
+          method: "POST",
+
+          body: JSON.stringify({
+
+            name,
+
+            fatherName,
+
+            mobile,
+
+            email,
+
+            address,
+
+            seat,
+
+            date,
+
+            shift,
+
+            plan
+          })
+        }
       );
 
-    }
 
-    return r.json();
+    /*
+      Booking created successfully.
+    */
 
-  })
+    selectedSeat =
+      seat;
 
-  .then(j => {
 
-    config = j || {};
+    currentSeatsData.booked =
+      currentSeatsData.booked || [];
+
+
+    currentSeatsData.pending =
+      currentSeatsData.pending || [];
 
 
     /*
-       Notice title
+      New booking starts with
+      payment_status = pending.
+
+      Therefore seat should appear
+      orange until admin confirms payment.
     */
 
-    if ($('nt')) {
+    if (
+      !currentSeatsData.pending.includes(seat)
+    ) {
 
-      $('nt').textContent =
-        j.noticeTitle || '';
-
+      currentSeatsData.pending.push(
+        seat
+      );
     }
 
 
-    /*
-       Notice text
-    */
-
-    if ($('nx')) {
-
-      $('nx').textContent =
-        j.noticeText || '';
-
-    }
-
-
-    /*
-       Load seat availability
-    */
-
-    seats();
-
-  })
-
-  .catch(e => {
-
-    console.error(
-      'Config loading error:',
-      e
+    renderSeats(
+      currentSeatsData
     );
 
 
     /*
-       Even if config fails,
-       try loading seats.
+      Save booking ID globally.
     */
 
-    seats();
+    window.currentBookingId =
+      result.id;
 
-  });
+
+    window.currentBookingAmount =
+      Number(result.amount) ||
+      amount;
+
+
+    /*
+      Show payment section.
+    */
+
+    showPaymentSection(
+      result
+    );
+
+
+    /*
+      Generate payment QR.
+    */
+
+    await loadPaymentQR(
+      result.id,
+      Number(result.amount) ||
+      amount
+    );
+
+
+    /*
+      Optional success message.
+    */
+
+    const bookingMessage =
+      $("bookingMessage");
+
+    if (bookingMessage) {
+
+      bookingMessage.textContent =
+        "Booking created successfully. Please complete the payment.";
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      "Booking error:",
+      error
+    );
+
+
+    alert(
+      error.message ||
+      "Booking failed. Please try again."
+    );
+
+
+    /*
+      Reload latest seat status
+      in case another user booked
+      the seat.
+    */
+
+    await seats();
+
+
+  } finally {
+
+    if (submitButton) {
+
+      submitButton.disabled =
+        false;
+
+      submitButton.textContent =
+        submitButton.dataset.oldText ||
+        "Book Seat";
+    }
+  }
+}
 
 
 /* =========================================================
-   LOAD SUCCESS STUDENTS
+   BOOKING FORM EVENT
    ========================================================= */
 
-loadSuccessStudents();
+const bookingForm =
+  $("bookingForm");
 
+
+if (bookingForm) {
+
+  bookingForm.addEventListener(
+    "submit",
+    createBooking
+  );
+}
+
+
+/* =========================================================
+   PAYMENT SECTION
+   ========================================================= */
+
+function showPaymentSection(
+  booking
+) {
+
+  const paymentSection =
+    $("paymentSection");
+
+
+  if (paymentSection) {
+
+    paymentSection.style.display =
+      "block";
+  }
+
+
+  const bookingId =
+    $("bookingId");
+
+
+  if (
+    bookingId &&
+    booking &&
+    booking.id
+  ) {
+
+    bookingId.textContent =
+      booking.id;
+  }
+
+
+  const amount =
+    $("bookingAmount");
+
+
+  if (
+    amount &&
+    booking &&
+    booking.amount
+  ) {
+
+    amount.textContent =
+      "₹" + booking.amount;
+  }
+}
+
+
+/* =========================================================
+   PAYMENT QR
+   ========================================================= */
+
+async function loadPaymentQR(
+  bookingId,
+  amount
+) {
+
+  try {
+
+    const data =
+      await apiFetch(
+        "/api/payment/qr?amount=" +
+        encodeURIComponent(amount) +
+        "&bookingId=" +
+        encodeURIComponent(bookingId)
+      );
+
+
+    /*
+      QR image
+    */
+
+    const qrImage =
+      $("paymentQR") ||
+      $("qrImage");
+
+
+    if (
+      qrImage &&
+      data.qrDataUrl
+    ) {
+
+      qrImage.src =
+        data.qrDataUrl;
+
+      qrImage.style.display =
+        "block";
+    }
+
+
+    /*
+      UPI link
+    */
+
+    window.currentUpiLink =
+      data.upiLink || "";
+
+
+    const upiLinkElement =
+      $("upiLink");
+
+
+    if (
+      upiLinkElement &&
+      data.upiLink
+    ) {
+
+      upiLinkElement.value =
+        data.upiLink;
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      "Payment QR error:",
+      error
+    );
+
+
+    const qrError =
+      $("qrError");
+
+
+    if (qrError) {
+
+      qrError.textContent =
+        error.message ||
+        "Unable to generate payment QR.";
+    }
+  }
+}
+
+
+/* =========================================================
+   OPEN UPI APP
+   ========================================================= */
+
+function openUpi(
+  app = ""
+) {
+
+  const upiLink =
+    window.currentUpiLink;
+
+
+  if (!upiLink) {
+
+    alert(
+      "Payment link is not available yet."
+    );
+
+    return;
+  }
+
+
+  let appLink =
+    upiLink;
+
+
+  /*
+    PhonePe
+  */
+
+  if (
+    app.toLowerCase() ===
+    "phonepe"
+  ) {
+
+    appLink =
+      upiLink.replace(
+        /^upi:\/\//,
+        "phonepe://"
+      );
+  }
+
+
+  /*
+    Google Pay
+  */
+
+  else if (
+    app.toLowerCase() ===
+    "gpay"
+  ) {
+
+    appLink =
+      upiLink.replace(
+        /^upi:\/\//,
+        "tez://"
+      );
+  }
+
+
+  window.location.href =
+    appLink;
+}
+
+
+/* =========================================================
+   COPY UPI ID / LINK
+   ========================================================= */
+
+async function copyText(
+  value
+) {
+
+  if (!value) {
+    return;
+  }
+
+
+  try {
+
+    await navigator.clipboard.writeText(
+      value
+    );
+
+
+    alert(
+      "Copied successfully."
+    );
+
+  } catch {
+
+    alert(
+      "Copy failed. Please copy it manually."
+    );
+  }
+}
+
+
+/* =========================================================
+   COPY UPI LINK
+   ========================================================= */
+
+function copyUpiLink() {
+
+  copyText(
+    window.currentUpiLink || ""
+  );
+}
+
+
+/* =========================================================
+   PAYMENT CLAIM
+   ========================================================= */
+
+async function submitPaymentClaim() {
+
+  const bookingId =
+    window.currentBookingId;
+
+
+  if (!bookingId) {
+
+    alert(
+      "Booking ID not found."
+    );
+
+    return;
+  }
+
+
+  const button =
+    $("paymentClaimButton") ||
+    $("claimPayment");
+
+
+  if (button) {
+
+    button.disabled =
+      true;
+
+    button.dataset.oldText =
+      button.textContent;
+
+    button.textContent =
+      "Submitting...";
+  }
+
+
+  try {
+
+    const result =
+      await apiFetch(
+        "/api/payment/claim",
+        {
+          method: "POST",
+
+          body: JSON.stringify({
+            bookingId
+          })
+        }
+      );
+
+
+    alert(
+      result.status === "submitted"
+        ? "Payment submitted successfully. Admin will verify it."
+        : "Payment status updated."
+    );
+
+
+    /*
+      Keep seat orange until
+      admin confirms payment.
+    */
+
+    await seats();
+
+
+  } catch (error) {
+
+    alert(
+      error.message ||
+      "Unable to submit payment."
+    );
+
+
+  } finally {
+
+    if (button) {
+
+      button.disabled =
+        false;
+
+      button.textContent =
+        button.dataset.oldText ||
+        "I Have Paid";
+    }
+  }
+}
+
+
+/* =========================================================
+   WHATSAPP PAYMENT RECEIPT
+   ========================================================= */
+
+function sendPaymentReceiptWhatsApp() {
+
+  const bookingId =
+    window.currentBookingId ||
+    "";
+
+
+  const name =
+    getFormValue("name");
+
+
+  const mobile =
+    getFormValue("mobile");
+
+
+  const seat =
+    selectedSeat ||
+    getFormValue("seat");
+
+
+  const date =
+    getFormValue("date");
+
+
+  const shift =
+    getFormValue("shift");
+
+
+  const planElement =
+    $("plan");
+
+
+  const plan =
+    planElement
+      ? planElement.value
+      : "Daily";
+
+
+  const amount =
+    window.currentBookingAmount ||
+    getPlanAmount(plan);
+
+
+  const text =
+`Sainik Library Payment Receipt
+
+Booking ID: ${bookingId}
+Name: ${name}
+Mobile: ${mobile}
+Seat: S${seat}
+Date: ${date}
+Shift: ${shift}
+Plan: ${plan}
+Amount: ₹${amount}
+
+I have completed the payment. Please verify my payment.`;
+
+
+  const whatsappNumber =
+    "918765196654";
+
+
+  const url =
+    "https://wa.me/" +
+    whatsappNumber +
+    "?text=" +
+    encodeURIComponent(text);
+
+
+  window.open(
+    url,
+    "_blank"
+  );
+}
+
+
+/* =========================================================
+   RESET BOOKING FORM
+   ========================================================= */
+
+function resetBookingForm() {
+
+  selectedSeat =
+    null;
+
+
+  window.currentBookingId =
+    null;
+
+
+  window.currentBookingAmount =
+    null;
+
+
+  const form =
+    $("bookingForm");
+
+
+  if (form) {
+
+    form.reset();
+  }
+
+
+  const seatInput =
+    $("seat");
+
+
+  if (seatInput) {
+
+    seatInput.value =
+      "";
+  }
+
+
+  const selectedSeatText =
+    $("selectedSeat");
+
+
+  if (selectedSeatText) {
+
+    selectedSeatText.textContent =
+      "None";
+  }
+
+
+  const paymentSection =
+    $("paymentSection");
+
+
+  if (paymentSection) {
+
+    paymentSection.style.display =
+      "none";
+  }
+
+
+  seats();
+}
+
+
+/* =========================================================
+   SUCCESS STUDENTS
+   ========================================================= */
+
+async function loadSuccessStudents() {
+
+  try {
+
+    const students =
+      await apiFetch(
+        "/api/success-students"
+      );
+
+
+    renderSuccessStudents(
+      students
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Success students loading error:",
+      error
+    );
+  }
+}
+
+
+/* =========================================================
+   RENDER SUCCESS STUDENTS
+   ========================================================= */
+
+function renderSuccessStudents(
+  students = []
+) {
+
+  const container =
+    $("successStudents");
+
+
+  if (!container) {
+    return;
+  }
+
+
+  container.innerHTML =
+    "";
+
+
+  if (
+    !Array.isArray(students) ||
+    students.length === 0
+  ) {
+
+    container.innerHTML = `
+      <div class="no-success-students">
+        Success Students will be displayed here.
+      </div>
+    `;
+
+    return;
+  }
+
+
+  students.forEach(
+    (student) => {
+
+      const card =
+        document.createElement(
+          "div"
+        );
+
+
+      card.className =
+        "success-student-card";
+
+
+      const photo =
+        student.photo
+          ? `
+            <img
+              src="${student.photo}"
+              alt="${escapeHtml(student.name || "Student")}"
+              class="success-student-photo"
+            >
+          `
+          : `
+            <div class="success-student-photo placeholder">
+              👨‍🎓
+            </div>
+          `;
+
+
+      card.innerHTML = `
+
+        ${photo}
+
+        <div class="success-student-content">
+
+          <h3>
+            ${escapeHtml(
+              student.name || ""
+            )}
+          </h3>
+
+          ${
+            student.bio
+              ? `
+                <p>
+                  ${escapeHtml(
+                    student.bio
+                  )}
+                </p>
+              `
+              : ""
+          }
+
+          ${
+            student.selected_for
+              ? `
+                <div>
+                  <strong>Selected For:</strong>
+                  ${escapeHtml(
+                    student.selected_for
+                  )}
+                </div>
+              `
+              : ""
+          }
+
+          ${
+            student.selected_place
+              ? `
+                <div>
+                  <strong>Place:</strong>
+                  ${escapeHtml(
+                    student.selected_place
+                  )}
+                </div>
+              `
+              : ""
+          }
+
+          ${
+            student.library_from ||
+            student.library_to
+              ? `
+                <div>
+                  <strong>Library Stay:</strong>
+                  ${escapeHtml(
+                    student.library_from || ""
+                  )}
+                  ${
+                    student.library_to
+                      ? " - " +
+                        escapeHtml(
+                          student.library_to
+                        )
+                      : ""
+                  }
+                </div>
+              `
+              : ""
+          }
+
+        </div>
+      `;
+
+
+      container.appendChild(
+        card
+      );
+    }
+  );
+}
+
+
+/* =========================================================
+   HTML ESCAPE
+   ========================================================= */
+
+function escapeHtml(
+  value
+) {
+
+  return String(
+    value ?? ""
+  )
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+}
+
+
+/* =========================================================
+   SMOOTH SCROLL
+   ========================================================= */
+
+function scrollToSection(
+  id
+) {
+
+  const element =
+    $(id);
+
+
+  if (!element) {
+    return;
+  }
+
+
+  element.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+}
+
+
+/* =========================================================
+   MOBILE MENU
+   ========================================================= */
+
+const menuButton =
+  $("menuButton");
+
+
+const mobileMenu =
+  $("mobileMenu");
+
+
+if (
+  menuButton &&
+  mobileMenu
+) {
+
+  menuButton.addEventListener(
+    "click",
+    () => {
+
+      mobileMenu.classList.toggle(
+        "active"
+      );
+    }
+  );
+}
+
+
+/* =========================================================
+   CLOSE MOBILE MENU
+   ========================================================= */
+
+document.addEventListener(
+  "click",
+  (event) => {
+
+    if (
+      !mobileMenu ||
+      !menuButton
+    ) {
+      return;
+    }
+
+
+    if (
+      !mobileMenu.contains(
+        event.target
+      ) &&
+      !menuButton.contains(
+        event.target
+      )
+    ) {
+
+      mobileMenu.classList.remove(
+        "active"
+      );
+    }
+  }
+);
+
+
+/* =========================================================
+   INITIALIZATION
+   ========================================================= */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  async () => {
+
+    /*
+      Load website configuration.
+    */
+
+    await loadConfig();
+
+
+    /*
+      Load available seats.
+    */
+
+    await seats();
+
+
+    /*
+      Load success students.
+    */
+
+    await loadSuccessStudents();
+
+  }
+);
+
+
+/* =========================================================
+   GLOBAL FUNCTIONS
+   =========================================================
+
+   These make functions available to
+   onclick="" attributes in HTML.
+
+   ========================================================= */
+
+window.seats =
+  seats;
+
+window.selectSeat =
+  selectSeat;
+
+window.createBooking =
+  createBooking;
+
+window.openUpi =
+  openUpi;
+
+window.copyUpiLink =
+  copyUpiLink;
+
+window.submitPaymentClaim =
+  submitPaymentClaim;
+
+window.sendPaymentReceiptWhatsApp =
+  sendPaymentReceiptWhatsApp;
+
+window.resetBookingForm =
+  resetBookingForm;
+
+window.loadSuccessStudents =
+  loadSuccessStudents;
+
+window.scrollToSection =
+  scrollToSection;
 </script>
 
 
