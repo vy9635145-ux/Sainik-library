@@ -146,9 +146,7 @@ function apiFetch(path, options = {}) {
 let selected=null,booking=null,config={};
 
 
-const apiFetch = (path, options) => {
-  return fetch(API_BASE + path, options);
-};
+
 const $=x=>document.getElementById(x);
 let today=new Date();today.setMinutes(today.getMinutes()-today.getTimezoneOffset());
 $('date').value=today.toISOString().slice(0,10);
@@ -156,7 +154,7 @@ $('date').value=today.toISOString().slice(0,10);
 let successIndex=0,successTimer=null;
 async function loadSuccessStudents(){
   try{
-    const r=await apifetch('/api/success-students'); const list=await r.json();
+    const r=await apiFetch('/api/success-students'); const list=await r.json();
     const track=document.getElementById('successTrack'),dots=document.getElementById('successDots');
     if(!Array.isArray(list)||!list.length){document.getElementById('successViewport').style.display='none';dots.style.display='none';return;}
     document.getElementById('successViewport').style.display='block';
@@ -164,33 +162,61 @@ async function loadSuccessStudents(){
     dots.innerHTML=list.map((_,i)=>`<button class="success-dot ${i===0?'active':''}" onclick="showSuccess(${i})" aria-label="Student ${i+1}"></button>`).join('');
     successIndex=0;showSuccess(0);clearInterval(successTimer);successTimer=setInterval(()=>showSuccess((successIndex+1)%list.length),4500);
   }catch(e){console.error(e)}
+} function showSuccess(i) {
+  const track = document.getElementById('successTrack');
+  if (!track || !track.children.length) return;
+
+  successIndex = i;
+  track.style.transform = `translateX(-${i * 100}%)`;
+
+  document.querySelectorAll('.success-dot').forEach((d, n) =>
+    d.classList.toggle('active', n === i)
+  );
 }
-function showSuccess(i){const track=document.getElementById('successTrack');if(!track||!track.children.length)return;successIndex=i;track.style.transform=`translateX(-${i*100}%)`;document.querySelectorAll('.success-dot').forEach((d,n)=>d.classList.toggle('active',n===i));}
-async function seats(){
-  async function seats(){
+
+async function seats() {
   try {
+    const date = $('date').value;
+    const shift = $('shift').value;
+
+    if (!date || !shift) {
+      $('seats').innerHTML =
+        '<p>Please select date and shift first.</p>';
+      return;
+    }
+
     const r = await fetch(
       '/api/seats?date=' +
-      encodeURIComponent($('date').value) +
+      encodeURIComponent(date) +
       '&shift=' +
-      encodeURIComponent($('shift').value)
+      encodeURIComponent(shift)
     );
 
     const j = await r.json();
 
     if (!r.ok) {
-      console.error(j);
+      console.error('Seats API error:', j);
+
       $('seats').innerHTML =
         '<p style="color:red">Seat availability load nahi ho rahi.</p>';
+
       return;
     }
 
     $('seats').innerHTML = '';
 
-    const booked = new Set((j.booked || []).map(Number));
-    const held = new Set((j.held || []).map(Number));
+    const booked = new Set(
+      (j.booked || []).map(Number)
+    );
 
-    for(let i=1; i<=Number(config.totalSeats || 55); i++){
+    const held = new Set(
+      (j.held || []).map(Number)
+    );
+
+    const totalSeats = Number(config.totalSeats || 55);
+
+    for (let i = 1; i <= totalSeats; i++) {
+
       const isBooked = booked.has(i);
       const isHeld = held.has(i);
 
@@ -203,12 +229,15 @@ async function seats(){
         (selected === i ? 'sel' : '');
 
       x.textContent = 'S' + i;
+
       x.disabled = isBooked || isHeld;
 
-      if(!x.disabled){
+      if (!x.disabled) {
         x.onclick = () => {
           selected = i;
+
           $('selected').textContent = 'S' + i;
+
           seats();
         };
       }
@@ -216,24 +245,15 @@ async function seats(){
       $('seats').appendChild(x);
     }
 
-  } catch(e) {
-    console.error(e);
+  } catch (e) {
+
+    console.error('Seat loading error:', e);
+
     $('seats').innerHTML =
       '<p style="color:red">Unable to load seats.</p>';
   }
-};
-  let j=await r.json(); $('seats').innerHTML='';
-  const booked=new Set(j.booked||[]), held=new Set(j.held||[]);
-  for(let i=1;i<=Number(config.totalSeats||55);i++){
-    let isBooked=booked.has(i),isHeld=held.has(i),x=document.createElement('button');
-    x.className='seat '+(isBooked?'booked ':'')+(isHeld?'held ':'')+(selected===i?'sel':'');
-    x.textContent='S'+i;
-    x.disabled=isBooked||isHeld;
-    if(!x.disabled)x.onclick=()=>{selected=i;$('selected').textContent='S'+i;seats()};
-    $('seats').appendChild(x);
-  }
 }
-
+ 
 function showReceipt(){
   $('receipt').innerHTML='<b>Booking ID:</b> '+booking.id+
     '<br><b>Student:</b> '+escapeHtml(booking.name)+
@@ -250,7 +270,7 @@ async function book(){
   if(!$('name').value.trim()||!$('fatherName').value.trim()||!$('address').value.trim()||!/^\d{10}$/.test($('mobile').value))
     return alert('Enter student name, father name, full address and valid 10-digit mobile.');
   let seatAtBooking=selected;
-  let r=await apifetch('/api/bookings',{method:'POST',headers:{'Content-Type':'application/json'},
+  let r=await apiFetch('/api/bookings',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({name:$('name').value.trim(),fatherName:$('fatherName').value.trim(),
       mobile:$('mobile').value,email:$('email').value,address:$('address').value.trim(),
       seat:seatAtBooking,date:$('date').value,shift:$('shift').value,plan:$('plan').value})});
@@ -273,7 +293,7 @@ async function setupUpi(){
   $('payAmount').textContent=booking.amount;
   $('upiText').textContent=config.upiId||'UPI ID not configured';
   $('upiName').textContent=config.upiName||'Sainik Library';
-  let r=await apifetch('/api/payment/qr?amount='+encodeURIComponent(booking.amount)+'&bookingId='+encodeURIComponent(booking.id));
+  let r=await apiFetch('/api/payment/qr?amount='+encodeURIComponent(booking.amount)+'&bookingId='+encodeURIComponent(booking.id));
   let j=await r.json();
   if(!r.ok){$('paymentStatus').textContent=j.error||'Payment setup failed.';return;}
   booking.upiLink=j.upiLink;
@@ -299,7 +319,7 @@ function openUpi(type){
 async function markPaid(){
   if(!booking?.id)return;
   $('paidBtn').disabled=true;
-  let r=await apifetch('/api/payment/claim',{method:'POST',headers:{'Content-Type':'application/json'},
+  let r=await apiFetch('/api/payment/claim',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({bookingId:booking.id})});
   let j=await r.json();
   if(!r.ok){$('paidBtn').disabled=false;return alert(j.error||'Could not submit payment status.');}
@@ -314,16 +334,11 @@ async function markPaid(){
   seats();
 }
 
+
 $('date').onchange=()=>{selected=null;$('selected').textContent='None';seats()};
 $('shift').onchange=()=>{selected=null;$('selected').textContent='None';seats()};
 
-apifetch('/api/config').then(r=>r.json()).then(j=>{
-  config=j;$('nt').textContent=j.noticeTitle;$('nx').textContent=j.noticeText;seats();
-});
-$('date').onchange=()=>{selected=null;$('selected').textContent='None';seats()};
-$('shift').onchange=()=>{selected=null;$('selected').textContent='None';seats()};
-
-apifetch('/api/config').then(r=>r.json()).then(j=>{
+apiFetch('/api/config').then(r=>r.json()).then(j=>{
   config=j;
   $('nt').textContent=j.noticeTitle;
   $('nx').textContent=j.noticeText;
