@@ -790,15 +790,22 @@ textarea {
 <label>Shift</label><select id="shift"><option>Morning</option><option>Evening</option><option>Full Day</option></select>
 <div class="legend"><span><i class="dot free"></i>Available</span><span><i class="dot taken"></i>Booked</span><span><i class="dot" style="background:#fb923c"></i>Payment Pending</span><span><i class="dot chosen"></i>Selected</span></div>
 <div id="seats" class="seats"></div>
-<p>Selected: <b id="selected">None</b></p>
+<p>Selected: <b id="selectedSeat">None</b></p>
+<input type="hidden" id="seat">
 <div class="form">
 <input id="name" placeholder="Student name" required>
 <input id="fatherName" placeholder="Father name" required>
 <input id="mobile" maxlength="10" inputmode="numeric" placeholder="10-digit mobile" required>
 <input id="address" placeholder="Full address" required>
-<textarea id="email" placeholder="Email (optional)" style="min-height:80px"></textarea>
+<input
+  id="email"
+  type="email"
+  placeholder="Email (optional)"
+>
 <select id="plan"><option>Daily</option><option>Monthly</option><option>Quarterly</option></select>
-<button class="btn" onclick="book()">Confirm Booking</button>
+<button id="bookingSubmit" class="btn" type="button" onclick="createBooking(event)">
+  Confirm Booking
+</button>
 </div>
 <p class="muted">🔒 🔒 A booked seat stays RED and locked for this SHIFT on every date. Only the admin can cancel it; other shifts remain independently available.</p>
 </div></div></section>
@@ -879,14 +886,13 @@ async function apiFetch(url, options = {}) {
       ? url
       : API_BASE + url;
 
-  const response =
-    await fetch(finalUrl, {
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...(options.headers || {})
-      }
-    });
+  const response = await fetch(finalUrl, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    }
+  });
 
   let data = null;
 
@@ -897,7 +903,6 @@ async function apiFetch(url, options = {}) {
   }
 
   if (!response.ok) {
-
     throw new Error(
       data.error ||
       data.message ||
@@ -922,6 +927,10 @@ let currentSeatsData = {
 
 let totalSeats = 55;
 
+let currentBookingId = null;
+let currentBookingAmount = 0;
+let currentUpiLink = "";
+
 
 /* =========================================================
    LOAD CONFIG
@@ -934,66 +943,8 @@ async function loadConfig() {
     const config =
       await apiFetch("/api/config");
 
-
     totalSeats =
       Number(config.totalSeats) || 55;
-
-
-    /*
-      Notice
-    */
-
-    const noticeTitle =
-      $("noticeTitle");
-
-    if (noticeTitle && config.noticeTitle) {
-      noticeTitle.textContent =
-        config.noticeTitle;
-    }
-
-
-    const noticeText =
-      $("noticeText");
-
-    if (noticeText && config.noticeText) {
-      noticeText.textContent =
-        config.noticeText;
-    }
-
-
-    /*
-      Payment amount
-    */
-
-    const paymentAmount =
-      $("paymentAmount");
-
-    if (
-      paymentAmount &&
-      config.paymentAmount
-    ) {
-
-      paymentAmount.textContent =
-        "₹" + config.paymentAmount;
-    }
-
-
-    /*
-      UPI ID
-    */
-
-    const upiId =
-      $("upiId");
-
-    if (
-      upiId &&
-      config.upiId
-    ) {
-
-      upiId.textContent =
-        config.upiId;
-    }
-
 
   } catch (error) {
 
@@ -1001,18 +952,18 @@ async function loadConfig() {
       "Config loading error:",
       error
     );
+
   }
 }
 
 
 /* =========================================================
-   SHIFT HELPERS
+   SHIFT
    ========================================================= */
 
 function getSelectedShift() {
 
-  const shiftElement =
-    $("shift");
+  const shiftElement = $("shift");
 
   if (!shiftElement) {
     return "";
@@ -1025,37 +976,13 @@ function getSelectedShift() {
 
 
 /* =========================================================
-   SEAT AVAILABILITY
-   =========================================================
-
-   IMPORTANT:
-
-   Date is NOT used for seat availability.
-
-   Selected shift is sent to backend.
-
-   Morning:
-      Morning  -> blocked
-      Full Day -> blocked
-      Evening  -> free
-
-   Evening:
-      Evening  -> blocked
-      Full Day -> blocked
-      Morning  -> free
-
-   Full Day:
-      Morning  -> blocked
-      Evening  -> blocked
-      Full Day -> blocked
-
+   SEATS
    ========================================================= */
 
 async function seats() {
 
   const shift =
     getSelectedShift();
-
 
   if (
     ![
@@ -1073,15 +1000,15 @@ async function seats() {
     return;
   }
 
-
   try {
 
     /*
       IMPORTANT:
-      Date intentionally NOT sent.
 
-      Backend decides availability
-      according to selected shift.
+      Date is NOT sent.
+
+      Seat availability is permanent
+      until admin cancellation.
     */
 
     const data =
@@ -1090,8 +1017,8 @@ async function seats() {
         encodeURIComponent(shift)
       );
 
-
     currentSeatsData = {
+
       booked:
         Array.isArray(data.booked)
           ? data.booked.map(Number)
@@ -1101,33 +1028,40 @@ async function seats() {
         Array.isArray(data.pending)
           ? data.pending.map(Number)
           : []
+
     };
 
 
     /*
-      If currently selected seat has
-      become unavailable, remove selection.
+      If selected seat became unavailable,
+      clear selection.
     */
 
-    const selected =
-      Number(selectedSeat);
-
-
     if (
-      selected &&
+      selectedSeat &&
       (
-        currentSeatsData.booked.includes(selected) ||
-        currentSeatsData.pending.includes(selected)
+        currentSeatsData.booked.includes(
+          Number(selectedSeat)
+        ) ||
+
+        currentSeatsData.pending.includes(
+          Number(selectedSeat)
+        )
       )
     ) {
 
       selectedSeat = null;
+
+      const seatInput = $("seat");
+
+      if (seatInput) {
+        seatInput.value = "";
+      }
+
     }
 
 
-    renderSeats(
-      currentSeatsData
-    );
+    renderSeats(currentSeatsData);
 
 
   } catch (error) {
@@ -1137,10 +1071,7 @@ async function seats() {
       error
     );
 
-
-    const container =
-      $("seats");
-
+    const container = $("seats");
 
     if (container) {
 
@@ -1149,7 +1080,9 @@ async function seats() {
           Unable to load seats. Please try again.
         </div>
       `;
+
     }
+
   }
 }
 
@@ -1160,20 +1093,16 @@ async function seats() {
 
 function renderSeats(data = {}) {
 
-  const container =
-    $("seats");
-
+  const container = $("seats");
 
   if (!container) {
     return;
   }
 
-
   const booked =
     Array.isArray(data.booked)
       ? data.booked.map(Number)
       : [];
-
 
   const pending =
     Array.isArray(data.pending)
@@ -1193,112 +1122,97 @@ function renderSeats(data = {}) {
     const button =
       document.createElement("button");
 
-
     button.type = "button";
 
-
-    button.className =
-      "seat";
-
+    button.className = "seat";
 
     button.dataset.seat =
-      seatNumber;
-
+      String(seatNumber);
 
     button.textContent =
       "S" + seatNumber;
 
 
-    /*
-      PAID / BOOKED
-      RED
-    */
+    /* =========================
+       BOOKED = RED
+       ========================= */
 
     if (
       booked.includes(seatNumber)
     ) {
 
-      button.classList.add(
-        "booked"
-      );
+      button.classList.add("booked");
 
       button.disabled = true;
 
-      button.title =
-        "Booked";
+      button.title = "Booked";
+
     }
 
 
-    /*
-      PENDING / SUBMITTED
-      ORANGE
-    */
+    /* =========================
+       PENDING = ORANGE
+       ========================= */
 
     else if (
       pending.includes(seatNumber)
     ) {
 
-      button.classList.add(
-        "pending"
-      );
+      button.classList.add("pending");
 
       button.disabled = true;
 
       button.title =
         "Payment pending";
+
     }
 
 
-    /*
-      CURRENTLY SELECTED
-      GOLD
-    */
+    /* =========================
+       SELECTED = GOLD
+       ========================= */
 
     else if (
       Number(selectedSeat) ===
       seatNumber
     ) {
 
-      button.classList.add(
-        "sel"
-      );
+      button.classList.add("sel");
 
-      button.title =
-        "Selected";
-    }
-
-
-    /*
-      FREE
-      GREEN
-    */
-
-    else {
-
-      button.classList.add(
-        "free"
-      );
-
-      button.title =
-        "Available";
+      button.title = "Selected";
 
 
       button.addEventListener(
         "click",
         () => {
-
-          selectSeat(
-            seatNumber
-          );
-
+          selectSeat(seatNumber);
         }
       );
+
     }
 
 
-    container.appendChild(
-      button
-    );
+    /* =========================
+       FREE = GREEN
+       ========================= */
+
+    else {
+
+      button.classList.add("free");
+
+      button.title = "Available";
+
+      button.addEventListener(
+        "click",
+        () => {
+          selectSeat(seatNumber);
+        }
+      );
+
+    }
+
+
+    container.appendChild(button);
   }
 }
 
@@ -1312,6 +1226,10 @@ function selectSeat(seatNumber) {
   const shift =
     getSelectedShift();
 
+
+  /*
+    Shift validation
+  */
 
   if (
     ![
@@ -1333,6 +1251,10 @@ function selectSeat(seatNumber) {
     Number(seatNumber);
 
 
+  /*
+    Check booked
+  */
+
   if (
     currentSeatsData.booked.includes(number)
   ) {
@@ -1344,6 +1266,10 @@ function selectSeat(seatNumber) {
     return;
   }
 
+
+  /*
+    Check pending
+  */
 
   if (
     currentSeatsData.pending.includes(number)
@@ -1357,30 +1283,31 @@ function selectSeat(seatNumber) {
   }
 
 
-  selectedSeat =
-    number;
+  /*
+    IMPORTANT
+
+    Save selected seat globally.
+  */
+
+  selectedSeat = number;
 
 
-  const seatInput =
-    $("seat");
+  /*
+    IMPORTANT
+
+    Save seat in hidden input too.
+  */
+
+  const seatInput = $("seat");
 
   if (seatInput) {
     seatInput.value =
-      number;
+      String(number);
   }
 
 
   /*
-    Update visual selection
-  */
-
-  renderSeats(
-    currentSeatsData
-  );
-
-
-  /*
-    Optional selected-seat display
+    Update selected text
   */
 
   const selectedSeatText =
@@ -1390,7 +1317,31 @@ function selectSeat(seatNumber) {
 
     selectedSeatText.textContent =
       "S" + number;
+
   }
+
+
+  /*
+    Re-render seats
+    so selected seat becomes GOLD.
+  */
+
+  renderSeats(
+    currentSeatsData
+  );
+
+
+  console.log(
+    "Selected Seat:",
+    selectedSeat
+  );
+
+  console.log(
+    "Seat Input:",
+    seatInput
+      ? seatInput.value
+      : "not found"
+  );
 }
 
 
@@ -1401,7 +1352,6 @@ function selectSeat(seatNumber) {
 const shiftElement =
   $("shift");
 
-
 if (shiftElement) {
 
   shiftElement.addEventListener(
@@ -1409,8 +1359,7 @@ if (shiftElement) {
     async () => {
 
       /*
-        Old selected seat is cleared
-        when user changes shift.
+        Clear old seat.
       */
 
       selectedSeat = null;
@@ -1428,17 +1377,15 @@ if (shiftElement) {
         $("selectedSeat");
 
       if (selectedSeatText) {
+
         selectedSeatText.textContent =
-          "1-55";
+          "None";
+
       }
 
 
-      /*
-        Load seats according to
-        new shift.
-      */
-
       await seats();
+
     }
   );
 }
@@ -1446,20 +1393,10 @@ if (shiftElement) {
 
 /* =========================================================
    DATE CHANGE
-   =========================================================
-
-   IMPORTANT:
-
-   Date does NOT control seat availability.
-
-   We can still reload the UI,
-   but backend ignores date.
-
    ========================================================= */
 
 const dateElement =
   $("date");
-
 
 if (dateElement) {
 
@@ -1468,14 +1405,12 @@ if (dateElement) {
     async () => {
 
       /*
-        Do NOT clear booked seats based
-        on date.
-
-        Seat availability is permanent
-        until admin cancellation.
+        Date does NOT change
+        permanent seat availability.
       */
 
       await seats();
+
     }
   );
 }
@@ -1489,35 +1424,32 @@ function getPlanAmount(plan) {
 
   const amounts = {
 
-    Daily:
-      50,
+    Daily: 50,
 
-    Monthly:
-      500,
+    Monthly: 500,
 
-    Quarterly:
-      1500
+    Quarterly: 1500
+
   };
 
-
   return (
-    amounts[plan] ||
-    500
+    amounts[plan] || 500
   );
 }
 
 
 /* =========================================================
-   FORM VALUES
+   FORM VALUE
    ========================================================= */
 
 function getFormValue(id) {
 
-  const element =
-    $(id);
+  const element = $(id);
 
   return element
-    ? String(element.value || "").trim()
+    ? String(
+        element.value || ""
+      ).trim()
     : "";
 }
 
@@ -1533,30 +1465,28 @@ async function createBooking(event) {
   }
 
 
+  /* =========================
+     FORM VALUES
+     ========================= */
+
   const name =
     getFormValue("name");
-
 
   const fatherName =
     getFormValue("fatherName") ||
     getFormValue("father_name");
 
-
   const mobile =
     getFormValue("mobile");
-
 
   const email =
     getFormValue("email");
 
-
   const address =
     getFormValue("address");
 
-
   const date =
     getFormValue("date");
-
 
   const shift =
     getFormValue("shift");
@@ -1565,23 +1495,51 @@ async function createBooking(event) {
   const planElement =
     $("plan");
 
-
   const plan =
     planElement
       ? planElement.value
       : "Daily";
 
 
-  const seat =
-    Number(
-      selectedSeat ||
-      getFormValue("seat")
-    );
+  /* =========================
+     IMPORTANT SEAT FIX
+     ========================= */
+
+  const seatInput =
+    $("seat");
+
+
+  let seat =
+    Number(selectedSeat);
 
 
   /*
-    Validation
+    If selectedSeat is missing,
+    try hidden input.
   */
+
+  if (
+    !Number.isInteger(seat) ||
+    seat < 1
+  ) {
+
+    seat =
+      Number(
+        seatInput?.value || 0
+      );
+
+  }
+
+
+  console.log(
+    "FINAL BOOKING SEAT:",
+    seat
+  );
+
+
+  /* =========================
+     VALIDATION
+     ========================= */
 
   if (!name) {
 
@@ -1604,9 +1562,7 @@ async function createBooking(event) {
 
 
   if (
-    !/^[0-9]{10}$/.test(
-      mobile
-    )
+    !/^[0-9]{10}$/.test(mobile)
   ) {
 
     alert(
@@ -1655,20 +1611,21 @@ async function createBooking(event) {
 
   if (
     !Number.isInteger(seat) ||
-    seat < 1
+    seat < 1 ||
+    seat > totalSeats
   ) {
 
     alert(
-      "Please select a seat."
+      "Please select a seat first."
     );
 
     return;
   }
 
 
-  /*
-    Final local check before sending.
-  */
+  /* =========================
+     LOCAL SEAT CHECK
+     ========================= */
 
   if (
     currentSeatsData.booked.includes(seat)
@@ -1698,40 +1655,64 @@ async function createBooking(event) {
   }
 
 
-  const amount =
-    getPlanAmount(plan);
-
+  /* =========================
+     BUTTON
+     ========================= */
 
   const submitButton =
     $("bookingSubmit") ||
-    $("submitBooking") ||
     document.querySelector(
-      'button[type="submit"]'
+      'button[onclick*="createBooking"]'
     );
 
 
   if (submitButton) {
 
-    submitButton.disabled =
-      true;
+    submitButton.disabled = true;
 
     submitButton.dataset.oldText =
       submitButton.textContent;
 
     submitButton.textContent =
       "Booking...";
+
   }
 
 
+  /* =========================
+     BOOKING DATA
+     ========================= */
+
+  const bookingData = {
+
+    name,
+
+    fatherName,
+
+    mobile,
+
+    email,
+
+    address,
+
+    seat: seat,
+
+    date,
+
+    shift,
+
+    plan
+
+  };
+
+
+  console.log(
+    "BOOKING DATA SENT TO SERVER:",
+    bookingData
+  );
+
+
   try {
-
-    /*
-      IMPORTANT:
-
-      date is stored in database,
-      but backend DOES NOT use date
-      to decide seat availability.
-    */
 
     const result =
       await apiFetch(
@@ -1739,61 +1720,46 @@ async function createBooking(event) {
         {
           method: "POST",
 
-          body: JSON.stringify({
-
-            name,
-
-            fatherName,
-
-            mobile,
-
-            email,
-
-            address,
-
-            seat,
-
-            date,
-
-            shift,
-
-            plan
-          })
+          body:
+            JSON.stringify(
+              bookingData
+            )
         }
       );
 
 
     /*
-      Booking created successfully.
+      Booking created.
     */
 
     selectedSeat =
       seat;
 
 
-    currentSeatsData.booked =
-      currentSeatsData.booked || [];
+    currentBookingId =
+      result.id;
 
 
-    currentSeatsData.pending =
-      currentSeatsData.pending || [];
+    currentBookingAmount =
+      Number(result.amount) ||
+      getPlanAmount(plan);
 
 
     /*
-      New booking starts with
-      payment_status = pending.
-
-      Therefore seat should appear
-      orange until admin confirms payment.
+      New booking is payment pending,
+      therefore orange.
     */
 
     if (
-      !currentSeatsData.pending.includes(seat)
+      !currentSeatsData.pending.includes(
+        seat
+      )
     ) {
 
       currentSeatsData.pending.push(
         seat
       );
+
     }
 
 
@@ -1803,20 +1769,7 @@ async function createBooking(event) {
 
 
     /*
-      Save booking ID globally.
-    */
-
-    window.currentBookingId =
-      result.id;
-
-
-    window.currentBookingAmount =
-      Number(result.amount) ||
-      amount;
-
-
-    /*
-      Show payment section.
+      Show payment.
     */
 
     showPaymentSection(
@@ -1825,28 +1778,25 @@ async function createBooking(event) {
 
 
     /*
-      Generate payment QR.
+      Generate QR.
     */
 
     await loadPaymentQR(
       result.id,
-      Number(result.amount) ||
-      amount
+      currentBookingAmount
     );
 
 
     /*
-      Optional success message.
+      WhatsApp link.
     */
 
-    const bookingMessage =
-      $("bookingMessage");
+    setupWhatsAppLink();
 
-    if (bookingMessage) {
 
-      bookingMessage.textContent =
-        "Booking created successfully. Please complete the payment.";
-    }
+    alert(
+      "Booking created successfully. Please complete the payment."
+    );
 
 
   } catch (error) {
@@ -1863,14 +1813,7 @@ async function createBooking(event) {
     );
 
 
-    /*
-      Reload latest seat status
-      in case another user booked
-      the seat.
-    */
-
     await seats();
-
 
   } finally {
 
@@ -1881,26 +1824,11 @@ async function createBooking(event) {
 
       submitButton.textContent =
         submitButton.dataset.oldText ||
-        "Book Seat";
+        "Confirm Booking";
+
     }
+
   }
-}
-
-
-/* =========================================================
-   BOOKING FORM EVENT
-   ========================================================= */
-
-const bookingForm =
-  $("bookingForm");
-
-
-if (bookingForm) {
-
-  bookingForm.addEventListener(
-    "submit",
-    createBooking
-  );
 }
 
 
@@ -1908,49 +1836,75 @@ if (bookingForm) {
    PAYMENT SECTION
    ========================================================= */
 
-function showPaymentSection(
-  booking
-) {
+function showPaymentSection(booking) {
 
-  const paymentSection =
-    $("paymentSection");
+  const modal =
+    $("modal");
 
+  /*
+    Your current HTML uses #modal
+    for payment.
+  */
 
-  if (paymentSection) {
-
-    paymentSection.style.display =
-      "block";
+  if (modal) {
+    modal.classList.add("on");
   }
 
 
-  const bookingId =
-    $("bookingId");
+  const receipt =
+    $("receipt");
 
 
   if (
-    bookingId &&
-    booking &&
-    booking.id
+    receipt &&
+    booking
   ) {
 
-    bookingId.textContent =
-      booking.id;
+    const name =
+      getFormValue("name");
+
+    const mobile =
+      getFormValue("mobile");
+
+    const date =
+      getFormValue("date");
+
+    const shift =
+      getFormValue("shift");
+
+    const plan =
+      getFormValue("plan") ||
+      "Daily";
+
+
+    receipt.innerHTML = `
+      <b>Booking ID:</b> ${escapeHtml(booking.id || "")}<br>
+      <b>Name:</b> ${escapeHtml(name)}<br>
+      <b>Mobile:</b> ${escapeHtml(mobile)}<br>
+      <b>Seat:</b> S${Number(selectedSeat)}<br>
+      <b>Date:</b> ${escapeHtml(date)}<br>
+      <b>Shift:</b> ${escapeHtml(shift)}<br>
+      <b>Plan:</b> ${escapeHtml(plan)}
+    `;
+
   }
 
 
-  const amount =
-    $("bookingAmount");
+  const payAmount =
+    $("payAmount");
 
 
-  if (
-    amount &&
-    booking &&
-    booking.amount
-  ) {
+  if (payAmount) {
 
-    amount.textContent =
-      "₹" + booking.amount;
+    payAmount.textContent =
+      Number(
+        booking.amount ||
+        currentBookingAmount ||
+        0
+      );
+
   }
+
 }
 
 
@@ -1974,11 +1928,16 @@ async function loadPaymentQR(
       );
 
 
+    currentUpiLink =
+      data.upiLink || "";
+
+
     /*
-      QR image
+      Your HTML uses paymentQr.
     */
 
     const qrImage =
+      $("paymentQr") ||
       $("paymentQR") ||
       $("qrImage");
 
@@ -1993,29 +1952,35 @@ async function loadPaymentQR(
 
       qrImage.style.display =
         "block";
+
     }
 
 
     /*
-      UPI link
+      UPI text
     */
 
-    window.currentUpiLink =
-      data.upiLink || "";
-
-
-    const upiLinkElement =
-      $("upiLink");
+    const upiText =
+      $("upiText");
 
 
     if (
-      upiLinkElement &&
+      upiText &&
       data.upiLink
     ) {
 
-      upiLinkElement.value =
+      upiText.textContent =
         data.upiLink;
+
     }
+
+
+    /*
+      Also store current link.
+    */
+
+    window.currentUpiLink =
+      currentUpiLink;
 
 
   } catch (error) {
@@ -2025,30 +1990,18 @@ async function loadPaymentQR(
       error
     );
 
-
-    const qrError =
-      $("qrError");
-
-
-    if (qrError) {
-
-      qrError.textContent =
-        error.message ||
-        "Unable to generate payment QR.";
-    }
   }
 }
 
 
 /* =========================================================
-   OPEN UPI APP
+   OPEN UPI
    ========================================================= */
 
-function openUpi(
-  app = ""
-) {
+function openUpi(app = "") {
 
   const upiLink =
+    currentUpiLink ||
     window.currentUpiLink;
 
 
@@ -2066,10 +2019,6 @@ function openUpi(
     upiLink;
 
 
-  /*
-    PhonePe
-  */
-
   if (
     app.toLowerCase() ===
     "phonepe"
@@ -2077,15 +2026,12 @@ function openUpi(
 
     appLink =
       upiLink.replace(
-        /^upi:\/\//,
+        /^upi:\/\//i,
         "phonepe://"
       );
+
   }
 
-
-  /*
-    Google Pay
-  */
 
   else if (
     app.toLowerCase() ===
@@ -2094,9 +2040,10 @@ function openUpi(
 
     appLink =
       upiLink.replace(
-        /^upi:\/\//,
+        /^upi:\/\//i,
         "tez://"
       );
+
   }
 
 
@@ -2106,14 +2053,27 @@ function openUpi(
 
 
 /* =========================================================
-   COPY UPI ID / LINK
+   COPY UPI
    ========================================================= */
 
-async function copyText(
-  value
-) {
+async function copyUpi() {
+
+  const upiText =
+    $("upiText");
+
+
+  const value =
+    upiText
+      ? upiText.textContent
+      : currentUpiLink;
+
 
   if (!value) {
+
+    alert(
+      "UPI ID is not available."
+    );
+
     return;
   }
 
@@ -2124,29 +2084,17 @@ async function copyText(
       value
     );
 
-
     alert(
-      "Copied successfully."
+      "UPI link copied successfully."
     );
 
   } catch {
 
     alert(
-      "Copy failed. Please copy it manually."
+      "Copy failed. Please copy manually."
     );
+
   }
-}
-
-
-/* =========================================================
-   COPY UPI LINK
-   ========================================================= */
-
-function copyUpiLink() {
-
-  copyText(
-    window.currentUpiLink || ""
-  );
 }
 
 
@@ -2154,9 +2102,10 @@ function copyUpiLink() {
    PAYMENT CLAIM
    ========================================================= */
 
-async function submitPaymentClaim() {
+async function markPaid() {
 
   const bookingId =
+    currentBookingId ||
     window.currentBookingId;
 
 
@@ -2170,24 +2119,6 @@ async function submitPaymentClaim() {
   }
 
 
-  const button =
-    $("paymentClaimButton") ||
-    $("claimPayment");
-
-
-  if (button) {
-
-    button.disabled =
-      true;
-
-    button.dataset.oldText =
-      button.textContent;
-
-    button.textContent =
-      "Submitting...";
-  }
-
-
   try {
 
     const result =
@@ -2196,24 +2127,27 @@ async function submitPaymentClaim() {
         {
           method: "POST",
 
-          body: JSON.stringify({
-            bookingId
-          })
+          body:
+            JSON.stringify({
+              bookingId
+            })
         }
       );
 
 
-    alert(
-      result.status === "submitted"
-        ? "Payment submitted successfully. Admin will verify it."
-        : "Payment status updated."
-    );
+    const status =
+      $("paymentStatus");
 
 
-    /*
-      Keep seat orange until
-      admin confirms payment.
-    */
+    if (status) {
+
+      status.textContent =
+        result.status === "submitted"
+          ? "Payment submitted successfully. Admin will verify it."
+          : "Payment status updated.";
+
+    }
+
 
     await seats();
 
@@ -2225,71 +2159,57 @@ async function submitPaymentClaim() {
       "Unable to submit payment."
     );
 
-
-  } finally {
-
-    if (button) {
-
-      button.disabled =
-        false;
-
-      button.textContent =
-        button.dataset.oldText ||
-        "I Have Paid";
-    }
   }
 }
 
 
 /* =========================================================
-   WHATSAPP PAYMENT RECEIPT
+   WHATSAPP
    ========================================================= */
 
-function sendPaymentReceiptWhatsApp() {
+function setupWhatsAppLink() {
+
+  const wa =
+    $("wa");
+
+
+  if (!wa) {
+    return;
+  }
+
 
   const bookingId =
-    window.currentBookingId ||
-    "";
+    currentBookingId || "";
 
 
   const name =
     getFormValue("name");
 
-
   const mobile =
     getFormValue("mobile");
-
-
-  const seat =
-    selectedSeat ||
-    getFormValue("seat");
-
 
   const date =
     getFormValue("date");
 
-
   const shift =
     getFormValue("shift");
 
-
-  const planElement =
-    $("plan");
-
-
   const plan =
-    planElement
-      ? planElement.value
-      : "Daily";
+    getFormValue("plan") ||
+    "Daily";
+
+
+  const seat =
+    Number(selectedSeat);
 
 
   const amount =
-    window.currentBookingAmount ||
+    currentBookingAmount ||
     getPlanAmount(plan);
 
 
   const text =
-`Sainik Library Payment Receipt
+`Sainik Library Booking
 
 Booking ID: ${bookingId}
 Name: ${name}
@@ -2307,82 +2227,82 @@ I have completed the payment. Please verify my payment.`;
     "918765196654";
 
 
-  const url =
+  wa.href =
     "https://wa.me/" +
     whatsappNumber +
     "?text=" +
     encodeURIComponent(text);
 
+}
 
-  window.open(
-    url,
-    "_blank"
-  );
+
+function sendPaymentReceiptWhatsApp() {
+
+  setupWhatsAppLink();
+
+  const wa =
+    $("wa");
+
+  if (wa) {
+    window.open(
+      wa.href,
+      "_blank"
+    );
+  }
 }
 
 
 /* =========================================================
-   RESET BOOKING FORM
+   RESET BOOKING
    ========================================================= */
 
 function resetBookingForm() {
 
-  selectedSeat =
-    null;
+  selectedSeat = null;
+
+  currentBookingId = null;
+
+  currentBookingAmount = 0;
+
+  currentUpiLink = "";
 
 
-  window.currentBookingId =
-    null;
+  window.currentBookingId = null;
 
+  window.currentBookingAmount = null;
 
-  window.currentBookingAmount =
-    null;
-
-
-  const form =
-    $("bookingForm");
-
-
-  if (form) {
-
-    form.reset();
-  }
+  window.currentUpiLink = "";
 
 
   const seatInput =
     $("seat");
 
-
   if (seatInput) {
-
-    seatInput.value =
-      "";
+    seatInput.value = "";
   }
 
 
   const selectedSeatText =
     $("selectedSeat");
 
-
   if (selectedSeatText) {
 
     selectedSeatText.textContent =
-      "1-55";
+      "None";
+
   }
 
 
-  const paymentSection =
-    $("paymentSection");
+  const modal =
+    $("modal");
 
-
-  if (paymentSection) {
-
-    paymentSection.style.display =
-      "none";
+  if (modal) {
+    modal.classList.remove("on");
   }
 
 
   seats();
+
 }
 
 
@@ -2394,10 +2314,50 @@ async function loadSuccessStudents() {
 
   try {
 
-    const students =
+    const data =
       await apiFetch(
         "/api/success-students"
       );
+
+
+    /*
+      Backend normally returns array.
+
+      But this also supports:
+      { students: [...] }
+      { successStudents: [...] }
+    */
+
+    let students = [];
+
+
+    if (Array.isArray(data)) {
+
+      students = data;
+
+    }
+
+    else if (
+      data &&
+      Array.isArray(data.students)
+    ) {
+
+      students =
+        data.students;
+
+    }
+
+    else if (
+      data &&
+      Array.isArray(
+        data.successStudents
+      )
+    ) {
+
+      students =
+        data.successStudents;
+
+    }
 
 
     renderSuccessStudents(
@@ -2411,6 +2371,27 @@ async function loadSuccessStudents() {
       "Success students loading error:",
       error
     );
+
+
+    const track =
+      $("successTrack");
+
+
+    if (track) {
+
+      track.innerHTML = `
+        <div class="success-slide">
+          <div class="success-card">
+            <div>
+              <h3>Unable to load success students</h3>
+              <p>Please refresh the page.</p>
+            </div>
+          </div>
+        </div>
+      `;
+
+    }
+
   }
 }
 
@@ -2423,17 +2404,29 @@ function renderSuccessStudents(
   students = []
 ) {
 
-  const container =
-    $("successStudents");
+  const track =
+    $("successTrack");
+
+  const dots =
+    $("successDots");
 
 
-  if (!container) {
+  if (!track) {
+
+    console.error(
+      "successTrack element not found."
+    );
+
     return;
   }
 
 
-  container.innerHTML =
-    "";
+  track.innerHTML = "";
+
+
+  if (dots) {
+    dots.innerHTML = "";
+  }
 
 
   if (
@@ -2441,9 +2434,21 @@ function renderSuccessStudents(
     students.length === 0
   ) {
 
-    container.innerHTML = `
-      <div class="no-success-students">
-        Success Students will be displayed here.
+    track.innerHTML = `
+      <div class="success-slide">
+
+        <div class="success-card">
+
+          <div>
+            <h3>No success students yet</h3>
+
+            <p class="muted">
+              Success Students will be displayed here.
+            </p>
+          </div>
+
+        </div>
+
       </div>
     `;
 
@@ -2451,116 +2456,280 @@ function renderSuccessStudents(
   }
 
 
-  students.forEach(
-    (student) => {
+  /*
+    Create every student slide.
+  */
 
-      const card =
+  students.forEach(
+    (student, index) => {
+
+      const slide =
         document.createElement(
           "div"
         );
 
 
-      card.className =
-        "success-student-card";
+      slide.className =
+        "success-slide";
 
 
       const photo =
         student.photo
           ? `
             <img
-              src="${student.photo}"
+              src="${escapeHtml(student.photo)}"
               alt="${escapeHtml(student.name || "Student")}"
-              class="success-student-photo"
             >
           `
           : `
-            <div class="success-student-photo placeholder">
+            <div
+              style="
+                width:180px;
+                height:210px;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                background:#e2e8f0;
+                border-radius:16px;
+                font-size:50px;
+              "
+            >
               👨‍🎓
             </div>
           `;
 
 
-      card.innerHTML = `
+      slide.innerHTML = `
 
-        ${photo}
+        <div class="success-card">
 
-        <div class="success-student-content">
+          ${photo}
 
-          <h3>
-            ${escapeHtml(
-              student.name || ""
-            )}
-          </h3>
+          <div>
 
-          ${
-            student.bio
-              ? `
-                <p>
-                  ${escapeHtml(
-                    student.bio
-                  )}
-                </p>
-              `
-              : ""
-          }
+            <span class="success-badge">
+              🏆 Successful Student
+            </span>
 
-          ${
-            student.selected_for
-              ? `
-                <div>
-                  <strong>Selected For:</strong>
-                  ${escapeHtml(
-                    student.selected_for
-                  )}
-                </div>
-              `
-              : ""
-          }
+            <h3>
+              ${escapeHtml(
+                student.name || ""
+              )}
+            </h3>
 
-          ${
-            student.selected_place
-              ? `
-                <div>
-                  <strong>Place:</strong>
-                  ${escapeHtml(
-                    student.selected_place
-                  )}
-                </div>
-              `
-              : ""
-          }
 
-          ${
-            student.library_from ||
-            student.library_to
-              ? `
-                <div>
-                  <strong>Library Stay:</strong>
-                  ${escapeHtml(
-                    student.library_from || ""
-                  )}
-                  ${
-                    student.library_to
-                      ? " - " +
-                        escapeHtml(
-                          student.library_to
-                        )
-                      : ""
-                  }
-                </div>
-              `
-              : ""
-          }
+            ${
+              student.bio
+                ? `
+                  <p class="muted">
+                    ${escapeHtml(
+                      student.bio
+                    )}
+                  </p>
+                `
+                : ""
+            }
+
+
+            <div class="success-meta">
+
+              ${
+                student.selected_for
+                  ? `
+                    <div>
+                      <b>Selected For</b><br>
+                      ${escapeHtml(
+                        student.selected_for
+                      )}
+                    </div>
+                  `
+                  : ""
+              }
+
+
+              ${
+                student.selected_place
+                  ? `
+                    <div>
+                      <b>Place</b><br>
+                      ${escapeHtml(
+                        student.selected_place
+                      )}
+                    </div>
+                  `
+                  : ""
+              }
+
+
+              ${
+                student.library_from ||
+                student.library_to
+                  ? `
+                    <div>
+                      <b>Library Stay</b><br>
+
+                      ${escapeHtml(
+                        student.library_from || ""
+                      )}
+
+                      ${
+                        student.library_to
+                          ? " - " +
+                            escapeHtml(
+                              student.library_to
+                            )
+                          : ""
+                      }
+
+                    </div>
+                  `
+                  : ""
+              }
+
+            </div>
+
+          </div>
 
         </div>
       `;
 
 
-      container.appendChild(
-        card
+      track.appendChild(
+        slide
       );
+
+
+      /*
+        Create dot.
+      */
+
+      if (dots) {
+
+        const dot =
+          document.createElement(
+            "button"
+          );
+
+        dot.type = "button";
+
+        dot.className =
+          "success-dot" +
+          (
+            index === 0
+              ? " active"
+              : ""
+          );
+
+
+        dot.addEventListener(
+          "click",
+          () => {
+
+            showSuccessStudent(
+              index
+            );
+
+          }
+        );
+
+
+        dots.appendChild(
+          dot
+        );
+
+      }
+
     }
   );
+
+
+  /*
+    Start first slide.
+  */
+
+  showSuccessStudent(0);
+
+
+  /*
+    Auto slide.
+  */
+
+  if (
+    students.length > 1
+  ) {
+
+    clearInterval(
+      window.successSliderTimer
+    );
+
+
+    let currentIndex = 0;
+
+
+    window.successSliderTimer =
+      setInterval(
+        () => {
+
+          currentIndex++;
+
+          if (
+            currentIndex >=
+            students.length
+          ) {
+            currentIndex = 0;
+          }
+
+
+          showSuccessStudent(
+            currentIndex
+          );
+
+        },
+        4000
+      );
+
+  }
+
+}
+
+
+/* =========================================================
+   SHOW SUCCESS STUDENT
+   ========================================================= */
+
+function showSuccessStudent(
+  index
+) {
+
+  const track =
+    $("successTrack");
+
+  const dots =
+    document.querySelectorAll(
+      ".success-dot"
+    );
+
+
+  if (!track) {
+    return;
+  }
+
+
+  track.style.transform =
+    `translateX(-${index * 100}%)`;
+
+
+  dots.forEach(
+    (dot, dotIndex) => {
+
+      dot.classList.toggle(
+        "active",
+        dotIndex === index
+      );
+
+    }
+  );
+
 }
 
 
@@ -2568,33 +2737,37 @@ function renderSuccessStudents(
    HTML ESCAPE
    ========================================================= */
 
-function escapeHtml(
-  value
-) {
+function escapeHtml(value) {
 
   return String(
     value ?? ""
   )
+
     .replace(
       /&/g,
       "&amp;"
     )
+
     .replace(
       /</g,
       "&lt;"
     )
+
     .replace(
       />/g,
       "&gt;"
     )
+
     .replace(
       /"/g,
       "&quot;"
     )
+
     .replace(
       /'/g,
       "&#039;"
     );
+
 }
 
 
@@ -2602,86 +2775,21 @@ function escapeHtml(
    SMOOTH SCROLL
    ========================================================= */
 
-function scrollToSection(
-  id
-) {
+function scrollToSection(id) {
 
   const element =
     $(id);
-
 
   if (!element) {
     return;
   }
 
-
   element.scrollIntoView({
     behavior: "smooth",
     block: "start"
   });
+
 }
-
-
-/* =========================================================
-   MOBILE MENU
-   ========================================================= */
-
-const menuButton =
-  $("menuButton");
-
-
-const mobileMenu =
-  $("mobileMenu");
-
-
-if (
-  menuButton &&
-  mobileMenu
-) {
-
-  menuButton.addEventListener(
-    "click",
-    () => {
-
-      mobileMenu.classList.toggle(
-        "active"
-      );
-    }
-  );
-}
-
-
-/* =========================================================
-   CLOSE MOBILE MENU
-   ========================================================= */
-
-document.addEventListener(
-  "click",
-  (event) => {
-
-    if (
-      !mobileMenu ||
-      !menuButton
-    ) {
-      return;
-    }
-
-
-    if (
-      !mobileMenu.contains(
-        event.target
-      ) &&
-      !menuButton.contains(
-        event.target
-      )
-    ) {
-
-      mobileMenu.classList.remove(
-        "active"
-      );
-    }
-  }
-);
 
 
 /* =========================================================
@@ -2692,23 +2800,9 @@ document.addEventListener(
   "DOMContentLoaded",
   async () => {
 
-    /*
-      Load website configuration.
-    */
-
     await loadConfig();
 
-
-    /*
-      Load available seats.
-    */
-
     await seats();
-
-
-    /*
-      Load success students.
-    */
 
     await loadSuccessStudents();
 
@@ -2718,11 +2812,6 @@ document.addEventListener(
 
 /* =========================================================
    GLOBAL FUNCTIONS
-   =========================================================
-
-   These make functions available to
-   onclick="" attributes in HTML.
-
    ========================================================= */
 
 window.seats =
@@ -2737,11 +2826,11 @@ window.createBooking =
 window.openUpi =
   openUpi;
 
-window.copyUpiLink =
-  copyUpiLink;
+window.copyUpi =
+  copyUpi;
 
-window.submitPaymentClaim =
-  submitPaymentClaim;
+window.markPaid =
+  markPaid;
 
 window.sendPaymentReceiptWhatsApp =
   sendPaymentReceiptWhatsApp;
@@ -2754,7 +2843,7 @@ window.loadSuccessStudents =
 
 window.scrollToSection =
   scrollToSection;
-</script>
 
+</script>
 
 </body></html>
