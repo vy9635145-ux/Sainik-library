@@ -5,38 +5,759 @@
 <title>SAINIK LIBRARY | Self Study Point</title>
 
 <style>
-*{box-sizing:border-box}html{scroll-behavior:smooth}
-body{margin:0;font-family:system-ui,Arial,sans-serif;background:#f5f7fb;color:#152033}
-header{background:#081a33;color:#fff;padding:15px 6%;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:20;box-shadow:0 4px 18px #0003}
-header a{color:#fff;margin-left:18px;text-decoration:none;font-weight:700}
-.hero{background:linear-gradient(135deg,#081a33,#15538e);color:#fffdfd;padding:78px 6%}
-.hero h1{font-size:clamp(40px,7vw,72px);margin:10px 0;line-height:1.02}.gold{color:#f2b84b}
-.wrap{max-width:1100px;margin:auto}section{padding:65px 6%}h2{font-size:50px;color:#081a33}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.card{background:#fff;padding:22px;border-radius:18px;box-shadow:0 10px 30px #00000010}
-.btn{display:inline-block;border:0;border-radius:10px;padding:12px 16px;font-weight:800;cursor:pointer;background:#081a33;color:#fff;text-decoration:none}
-.goldbtn{background:#f2b84b;color:#172033}.greenbtn{background:#16a34a}.bluebtn{background:#2563eb}
-.seats{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin:15px 0}
-.seat{padding:13px;border:2px solid #86efac;border-radius:9px;background:#dcfce7;color:#166534;font-weight:800;cursor:pointer}
-.seat:hover{transform:translateY(-1px)}.seat.held{background:#fb923c;border-color:#ea580c;color:#fff;cursor:not-allowed}.seat.booked{background:#ef4444;border-color:#dc2626;color:#fff;cursor:not-allowed}
-.seat.sel{background:#f2b84b;border-color:#d99b15;color:#172033}
-.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:14px;margin:10px 0}.dot{width:13px;height:13px;border-radius:4px;display:inline-block;margin-right:5px;vertical-align:-2px}
-.free{background:#dcfce7}.taken{background:#ef4444}.chosen{background:#f2b84b}
-input,select,textarea{padding:12px;border:1px solid #d5ddea;border-radius:9px;width:100%;margin:5px 0 12px;font:inherit;background:#fff}.form{max-width:520px}
-.notice{border-left:5px solid #f2b84b}.muted{color:#68778b}
-.contact{background:linear-gradient(135deg,#081a33,#123c67);color:#fff;overflow:hidden}
-.contact h2{color:#fff}.contact-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:20px}
-.contact-card{background:#ffffff12;border:1px solid #ffffff25;padding:25px;border-radius:18px;backdrop-filter:blur(8px)}
-.contact-card a{color:#ee4816;font-weight:800;text-decoration:none}.contact-item{padding:13px 0;border-bottom:1px solid #ffffff20}.contact-item:last-child{border:0}
-.payment{margin-top:18px;padding:18px;border-radius:14px;background:#f8fafc;border:1px solid #e2e8f0}
-.payment-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.payment small{display:block;margin-top:10px;color:#64748b}.paybox{display:grid;grid-template-columns:260px 1fr;gap:20px;align-items:center;margin-top:15px}.qrwrap{background:#fff;border:1px solid #dbe3ef;border-radius:14px;padding:12px;text-align:center}.qrwrap img{width:100%;max-width:230px;display:block;margin:auto}.upi-copy{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.upi-copy code{background:#eef2f7;padding:8px 10px;border-radius:8px;font-weight:700}.copybtn{padding:8px 10px;border:0;border-radius:8px;background:#e2e8f0;font-weight:800;cursor:pointer}.pay-note{padding:10px 12px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;color:#9a3412;font-size:13px;margin-top:12px}
+  /* =========================================================
+   GLOBAL
+   ========================================================= */
 
-.success-showcase{background:linear-gradient(180deg,#f8fafc,#fff);padding:42px 6%;overflow:hidden}.success-head{text-align:center;margin-bottom:20px}.success-head h2{margin:0 0 8px}.success-viewport{max-width:1100px;margin:auto;overflow:hidden;border-radius:20px}.success-track{display:flex;transition:transform .65s ease;will-change:transform}.success-slide{min-width:100%;padding:4px}.success-card{display:grid;grid-template-columns:180px 1fr;gap:24px;align-items:center;background:#fff;border:1px solid #e2e8f0;border-radius:20px;padding:22px;box-shadow:0 12px 30px #00000010;min-height:230px}
-.success-card img{width:180px;height:210px;object-fit:cover;border-radius:16px;background:#e2e8f0}.success-card h3{font-size:28px;margin:0 0 8px;color:#081a33}.success-badge{display:inline-block;background:#fef3c7;color:#92400e;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800;margin-bottom:10px}.success-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px}.success-meta div{background:#f8fafc;border-radius:10px;padding:9px;font-size:13px}.success-dots{display:flex;justify-content:center;gap:7px;margin-top:15px}.success-dot{width:9px;height:9px;border:0;border-radius:50%;background:#cbd5e1;cursor:pointer}.success-dot.active{background:#f2b84b;transform:scale(1.25)}
-@media(max-width:700px){.success-showcase{padding:38px 5%}.success-card{grid-template-columns:95px 1fr;gap:14px;padding:15px;min-height:190px}.success-card img{width:95px;height:120px;border-radius:12px}.success-card h3{font-size:21px}.success-meta{grid-template-columns:1fr}.success-card p{font-size:14px}}
-.modal{position:fixed;inset:0;background:#0009;display:none;place-items:center;padding:20px;z-index:50}.modal.on{display:grid}
-.modal>div{background:#fff;padding:25px;border-radius:18px;width:min(540px,100%);max-height:90vh;overflow:auto}
-.receipt{background:#f8fafc;padding:15px;border-radius:12px;line-height:1.8}.close{background:#64748b;margin-left:8px}
-@media(max-width:700px){.grid{grid-template-columns:1fr}.seats{grid-template-columns:repeat(4,1fr)}header nav{display:none}.contact-grid{grid-template-columns:1fr}.payment-buttons{grid-template-columns:1fr}.payment-buttons .btn{width:100%;text-align:center}.paybox{grid-template-columns:1fr}}
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, Arial, sans-serif;
+  background: #f5f7fb;
+  color: #152033;
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+header {
+  background: #081a33;
+  color: #fff;
+  padding: 15px 6%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  box-shadow: 0 4px 18px #0003;
+}
+
+header a {
+  color: #fff;
+  margin-left: 18px;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   HERO
+   ========================================================= */
+
+.hero {
+  background: linear-gradient(
+    135deg,
+    #081a33,
+    #15538e
+  );
+
+  color: #fffdfd;
+  padding: 78px 6%;
+}
+
+.hero h1 {
+  font-size: clamp(40px, 7vw, 72px);
+  margin: 10px 0;
+  line-height: 1.02;
+}
+
+.gold {
+  color: #f2b84b;
+}
+
+
+/* =========================================================
+   COMMON LAYOUT
+   ========================================================= */
+
+.wrap {
+  max-width: 1100px;
+  margin: auto;
+}
+
+section {
+  padding: 65px 6%;
+}
+
+h2 {
+  font-size: 50px;
+  color: #081a33;
+}
+
+
+/* =========================================================
+   GRID / CARDS
+   ========================================================= */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.card {
+  background: #fff;
+  padding: 22px;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px #00000010;
+}
+
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+.btn {
+  display: inline-block;
+  border: 0;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-weight: 800;
+  cursor: pointer;
+  background: #081a33;
+  color: #fff;
+  text-decoration: none;
+}
+
+.goldbtn {
+  background: #f2b84b;
+  color: #172033;
+}
+
+.greenbtn {
+  background: #16a34a;
+}
+
+.bluebtn {
+  background: #2563eb;
+}
+
+
+/* =========================================================
+   SEAT SECTION
+   ========================================================= */
+
+.seats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 9px;
+  margin: 15px 0;
+}
+
+
+/* =========================================================
+   DEFAULT SEAT = FREE / GREEN
+   ========================================================= */
+
+.seat {
+  padding: 13px;
+
+  border: 2px solid #16a34a;
+  border-radius: 9px;
+
+  background: #22c55e !important;
+  color: #fff !important;
+
+  font-weight: 800;
+  cursor: pointer;
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+
+/* Free seat hover */
+
+.seat:not(.booked):not(.held):not(.pending):not(.sel):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 12px #0002;
+}
+
+
+/* =========================================================
+   ORANGE = PAYMENT PENDING / SUBMITTED
+   =========================================================
+
+   Backend:
+   payment_status = pending
+   payment_status = submitted
+
+   Both will be orange.
+   ========================================================= */
+
+.seat.held,
+.seat.pending {
+  background: #f97316 !important;
+  border-color: #ea580c !important;
+  color: #fff !important;
+
+  cursor: not-allowed;
+}
+
+
+/* =========================================================
+   RED = PAYMENT PAID / CONFIRMED
+   ========================================================= */
+
+.seat.booked {
+  background: #ef4444 !important;
+  border-color: #dc2626 !important;
+  color: #fff !important;
+
+  cursor: not-allowed;
+}
+
+
+/* =========================================================
+   SELECTED SEAT = GOLD
+   =========================================================
+
+   Only available green seat can normally be selected.
+   ========================================================= */
+
+.seat.sel {
+  background: #f2b84b !important;
+  border-color: #d99b15 !important;
+  color: #172033 !important;
+
+  outline: 4px solid #2563eb;
+  outline-offset: 2px;
+}
+
+
+/* =========================================================
+   SEAT LEGEND
+   ========================================================= */
+
+.legend {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  font-size: 14px;
+  margin: 10px 0;
+}
+
+.dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-right: 5px;
+  vertical-align: -2px;
+}
+
+
+/* Green = Free */
+
+.free {
+  background: #22c55e;
+}
+
+
+/* Red = Booked / Paid */
+
+.taken {
+  background: #ef4444;
+}
+
+
+/* Orange = Payment Pending */
+
+.pending-dot {
+  background: #f97316;
+}
+
+
+/* Gold = Selected */
+
+.chosen {
+  background: #f2b84b;
+}
+
+
+/* =========================================================
+   FORM
+   ========================================================= */
+
+input,
+select,
+textarea {
+  padding: 12px;
+  border: 1px solid #d5ddea;
+  border-radius: 9px;
+  width: 100%;
+  margin: 5px 0 12px;
+  font: inherit;
+  background: #fff;
+}
+
+.form {
+  max-width: 520px;
+}
+
+
+/* =========================================================
+   NOTICE
+   ========================================================= */
+
+.notice {
+  border-left: 5px solid #f2b84b;
+}
+
+.muted {
+  color: #68778b;
+}
+
+
+/* =========================================================
+   CONTACT
+   ========================================================= */
+
+.contact {
+  background: linear-gradient(
+    135deg,
+    #081a33,
+    #123c67
+  );
+
+  color: #fff;
+  overflow: hidden;
+}
+
+.contact h2 {
+  color: #fff;
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 20px;
+}
+
+.contact-card {
+  background: #ffffff12;
+  border: 1px solid #ffffff25;
+  padding: 25px;
+  border-radius: 18px;
+  backdrop-filter: blur(8px);
+}
+
+.contact-card a {
+  color: #ee4816;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.contact-item {
+  padding: 13px 0;
+  border-bottom: 1px solid #ffffff20;
+}
+
+.contact-item:last-child {
+  border: 0;
+}
+
+
+/* =========================================================
+   PAYMENT
+   ========================================================= */
+
+.payment {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.payment-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.payment small {
+  display: block;
+  margin-top: 10px;
+  color: #64748b;
+}
+
+.paybox {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 20px;
+  align-items: center;
+  margin-top: 15px;
+}
+
+.qrwrap {
+  background: #fff;
+  border: 1px solid #dbe3ef;
+  border-radius: 14px;
+  padding: 12px;
+  text-align: center;
+}
+
+.qrwrap img {
+  width: 100%;
+  max-width: 230px;
+  display: block;
+  margin: auto;
+}
+
+.upi-copy {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.upi-copy code {
+  background: #eef2f7;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+.copybtn {
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: #e2e8f0;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.pay-note {
+  padding: 10px 12px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 10px;
+  color: #9a3412;
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+
+/* =========================================================
+   SUCCESS STUDENTS
+   ========================================================= */
+
+.success-showcase {
+  background: linear-gradient(
+    180deg,
+    #f8fafc,
+    #fff
+  );
+
+  padding: 42px 6%;
+  overflow: hidden;
+}
+
+.success-head {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.success-head h2 {
+  margin: 0 0 8px;
+}
+
+.success-viewport {
+  max-width: 1100px;
+  margin: auto;
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+.success-track {
+  display: flex;
+  transition: transform 0.65s ease;
+  will-change: transform;
+}
+
+.success-slide {
+  min-width: 100%;
+  padding: 4px;
+}
+
+.success-card {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 24px;
+  align-items: center;
+
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 22px;
+
+  box-shadow: 0 12px 30px #00000010;
+
+  min-height: 230px;
+}
+
+.success-card img {
+  width: 180px;
+  height: 210px;
+  object-fit: cover;
+  border-radius: 16px;
+  background: #e2e8f0;
+}
+
+.success-card h3 {
+  font-size: 28px;
+  margin: 0 0 8px;
+  color: #081a33;
+}
+
+.success-badge {
+  display: inline-block;
+  background: #fef3c7;
+  color: #92400e;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.success-meta {
+  display: grid;
+  grid-template-columns: repeat(
+    2,
+    minmax(0, 1fr)
+  );
+
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.success-meta div {
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 9px;
+  font-size: 13px;
+}
+
+.success-dots {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 15px;
+}
+
+.success-dot {
+  width: 9px;
+  height: 9px;
+  border: 0;
+  border-radius: 50%;
+  background: #cbd5e1;
+  cursor: pointer;
+}
+
+.success-dot.active {
+  background: #f2b84b;
+  transform: scale(1.25);
+}
+
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+
+.modal {
+  position: fixed;
+  inset: 0;
+
+  background: #0009;
+
+  display: none;
+  place-items: center;
+
+  padding: 20px;
+
+  z-index: 50;
+}
+
+.modal.on {
+  display: grid;
+}
+
+.modal > div {
+  background: #fff;
+
+  padding: 25px;
+
+  border-radius: 18px;
+
+  width: min(540px, 100%);
+
+  max-height: 90vh;
+  overflow: auto;
+}
+
+
+/* =========================================================
+   RECEIPT
+   ========================================================= */
+
+.receipt {
+  background: #f8fafc;
+  padding: 15px;
+  border-radius: 12px;
+  line-height: 1.8;
+}
+
+.close {
+  background: #64748b;
+  margin-left: 8px;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .hero {
+    padding: 55px 5%;
+  }
+
+  section {
+    padding: 45px 5%;
+  }
+
+  h2 {
+    font-size: 36px;
+  }
+
+
+  /* Cards */
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+
+  /* Seats */
+
+  .seats {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 7px;
+  }
+
+  .seat {
+    padding: 11px 5px;
+    font-size: 13px;
+  }
+
+
+  /* Header */
+
+  header nav {
+    display: none;
+  }
+
+
+  /* Contact */
+
+  .contact-grid {
+    grid-template-columns: 1fr;
+  }
+
+
+  /* Payment */
+
+  .payment-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .payment-buttons .btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .paybox {
+    grid-template-columns: 1fr;
+  }
+
+
+  /* Success students */
+
+  .success-showcase {
+    padding: 38px 5%;
+  }
+
+  .success-card {
+    grid-template-columns: 95px 1fr;
+    gap: 14px;
+    padding: 15px;
+    min-height: 190px;
+  }
+
+  .success-card img {
+    width: 95px;
+    height: 120px;
+    border-radius: 12px;
+  }
+
+  .success-card h3 {
+    font-size: 21px;
+  }
+
+  .success-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .success-card p {
+    font-size: 14px;
+  }
+}
+
+
+/* =========================================================
+   VERY SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 420px) {
+
+  .seats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .seat {
+    padding: 10px 4px;
+    font-size: 12px;
+  }
+
+  .legend {
+    gap: 10px;
+    font-size: 13px;
+  }
+
+  .success-card {
+    grid-template-columns: 80px 1fr;
+  }
+
+  .success-card img {
+    width: 80px;
+    height: 105px;
+  }
+}
 </style>
 </head>
 <body>
@@ -137,11 +858,17 @@ input,select,textarea{padding:12px;border:1px solid #d5ddea;border-radius:9px;wi
 <button class="btn close" onclick="modal.classList.remove('on')">Close</button>
 </div></div>
 <script>
+
 const API_BASE = 'https://sainik-library.onrender.com';
 
 function apiFetch(path, options = {}) {
   return fetch(API_BASE + path, options);
 }
+
+
+/* =========================================================
+   GLOBAL VARIABLES
+   ========================================================= */
 
 let selected = null;
 let booking = null;
@@ -149,239 +876,570 @@ let config = {};
 
 const $ = x => document.getElementById(x);
 
-let today = new Date();
-today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
 
-$('date').value = today.toISOString().slice(0, 10);
+/* =========================================================
+   TODAY'S DATE
+   ========================================================= */
+
+let today = new Date();
+
+today.setMinutes(
+  today.getMinutes() -
+  today.getTimezoneOffset()
+);
+
+if ($('date')) {
+  $('date').value =
+    today.toISOString().slice(0, 10);
+}
+
+
+/* =========================================================
+   SUCCESS STUDENTS
+   ========================================================= */
 
 let successIndex = 0;
 let successTimer = null;
 
 
-/* =========================
-   SUCCESS STUDENTS
-========================= */
-
 async function loadSuccessStudents() {
+
   try {
-    const r = await apiFetch('/api/success-students');
-    const list = await r.json();
 
-    const track = document.getElementById('successTrack');
-    const dots = document.getElementById('successDots');
-    const viewport = document.getElementById('successViewport');
+    const r =
+      await apiFetch(
+        '/api/success-students'
+      );
 
-    if (!Array.isArray(list) || !list.length) {
-      if (viewport) viewport.style.display = 'none';
-      if (dots) dots.style.display = 'none';
+    const list =
+      await r.json();
+
+    const track =
+      document.getElementById(
+        'successTrack'
+      );
+
+    const dots =
+      document.getElementById(
+        'successDots'
+      );
+
+    const viewport =
+      document.getElementById(
+        'successViewport'
+      );
+
+
+    if (
+      !Array.isArray(list) ||
+      !list.length
+    ) {
+
+      if (viewport) {
+        viewport.style.display =
+          'none';
+      }
+
+      if (dots) {
+        dots.style.display =
+          'none';
+      }
+
       return;
     }
 
-    if (viewport) viewport.style.display = 'block';
-    if (dots) dots.style.display = 'flex';
 
-    track.innerHTML = list.map(s => `
-      <div class="success-slide">
-        <article class="success-card">
+    if (viewport) {
+      viewport.style.display =
+        'block';
+    }
 
-          ${
-            s.photo
-              ? `<img src="${escapeHtml(s.photo)}"
-                      alt="${escapeHtml(s.name || 'Success Student')}">`
-              : `<div class="success-card"
-                      style="padding:0;background:#f1f5f9"></div>`
-          }
+    if (dots) {
+      dots.style.display =
+        'flex';
+    }
 
-          <div>
-            <span class="success-badge">SUCCESS STUDENT</span>
 
-            <h3>${escapeHtml(s.name || '')}</h3>
+    if (!track) return;
 
-            <p class="muted">
-              ${escapeHtml(
-                s.bio || 'Proudly prepared at Sainik Library.'
-              )}
-            </p>
 
-            <div class="success-meta">
+    track.innerHTML =
+      list.map(s => `
 
-              <div>
-                <b>Selected for</b><br>
-                ${escapeHtml(s.selected_for || '—')}
-              </div>
+        <div class="success-slide">
 
-              <div>
-                <b>Selected at</b><br>
-                ${escapeHtml(s.selected_place || '—')}
-              </div>
+          <article class="success-card">
 
-              <div>
-                <b>Library period</b><br>
-                ${escapeHtml(s.library_from || '—')}
-                →
-                ${escapeHtml(s.library_to || '—')}
+            ${
+              s.photo
+                ? `
+                  <img
+                    src="${escapeHtml(s.photo)}"
+                    alt="${escapeHtml(
+                      s.name ||
+                      'Success Student'
+                    )}"
+                  >
+                `
+                : `
+                  <div
+                    class="success-card"
+                    style="
+                      padding:0;
+                      background:#f1f5f9
+                    "
+                  ></div>
+                `
+            }
+
+            <div>
+
+              <span class="success-badge">
+                SUCCESS STUDENT
+              </span>
+
+              <h3>
+                ${escapeHtml(
+                  s.name || ''
+                )}
+              </h3>
+
+              <p class="muted">
+                ${escapeHtml(
+                  s.bio ||
+                  'Proudly prepared at Sainik Library.'
+                )}
+              </p>
+
+              <div class="success-meta">
+
+                <div>
+                  <b>Selected for</b><br>
+                  ${escapeHtml(
+                    s.selected_for || '—'
+                  )}
+                </div>
+
+                <div>
+                  <b>Selected at</b><br>
+                  ${escapeHtml(
+                    s.selected_place || '—'
+                  )}
+                </div>
+
+                <div>
+                  <b>Library period</b><br>
+                  ${escapeHtml(
+                    s.library_from || '—'
+                  )}
+                  →
+                  ${escapeHtml(
+                    s.library_to || '—'
+                  )}
+                </div>
+
               </div>
 
             </div>
-          </div>
 
-        </article>
-      </div>
-    `).join('');
+          </article>
 
-    dots.innerHTML = list.map((_, i) => `
-      <button
-        class="success-dot ${i === 0 ? 'active' : ''}"
-        onclick="showSuccess(${i})"
-        aria-label="Student ${i + 1}">
-      </button>
-    `).join('');
+        </div>
+
+      `).join('');
+
+
+    if (dots) {
+
+      dots.innerHTML =
+        list.map((_, i) => `
+
+          <button
+            class="success-dot ${
+              i === 0
+                ? 'active'
+                : ''
+            }"
+            onclick="showSuccess(${i})"
+            aria-label="Student ${i + 1}">
+          </button>
+
+        `).join('');
+
+    }
+
 
     successIndex = 0;
 
     showSuccess(0);
 
-    clearInterval(successTimer);
 
-    successTimer = setInterval(() => {
-      showSuccess((successIndex + 1) % list.length);
-    }, 4500);
+    clearInterval(
+      successTimer
+    );
+
+
+    successTimer =
+      setInterval(() => {
+
+        showSuccess(
+          (successIndex + 1) %
+          list.length
+        );
+
+      }, 4500);
+
 
   } catch (e) {
-    console.error('Success students error:', e);
+
+    console.error(
+      'Success students error:',
+      e
+    );
+
   }
 }
 
 
 function showSuccess(i) {
-  const track = document.getElementById('successTrack');
 
-  if (!track || !track.children.length) return;
+  const track =
+    document.getElementById(
+      'successTrack'
+    );
+
+  if (
+    !track ||
+    !track.children.length
+  ) {
+    return;
+  }
+
 
   successIndex = i;
 
-  track.style.transform = `translateX(-${i * 100}%)`;
 
-  document.querySelectorAll('.success-dot').forEach((d, n) => {
-    d.classList.toggle('active', n === i);
-  });
+  track.style.transform =
+    `translateX(-${i * 100}%)`;
+
+
+  document
+    .querySelectorAll(
+      '.success-dot'
+    )
+    .forEach((d, n) => {
+
+      d.classList.toggle(
+        'active',
+        n === i
+      );
+
+    });
+
 }
 
 
-/* =========================
-   SEAT AVAILABILITY
-========================= */
+/* =========================================================
+   PERMANENT SEAT AVAILABILITY
+   =========================================================
+
+   IMPORTANT:
+
+   Date is NOT used here.
+
+   Seat status depends only on active booking:
+
+   PAID
+      -> RED
+
+   PENDING / SUBMITTED
+      -> ORANGE
+
+   No active booking
+      -> GREEN
+
+   Admin cancels booking
+      -> GREEN
+
+   ========================================================= */
 
 async function seats() {
+
   try {
 
-    const date = $('date').value;
-    const shift = $('shift').value;
+    const r =
+      await apiFetch(
+        '/api/seats'
+      );
 
-    if (!date || !shift) {
-      $('seats').innerHTML =
-        '<p>Please select date and shift first.</p>';
-      return;
-    }
 
-    const r = await apiFetch(
-      '/api/seats?date=' +
-      encodeURIComponent(date) +
-      '&shift=' +
-      encodeURIComponent(shift)
-    );
+    const j =
+      await r.json();
 
-    const j = await r.json();
 
     if (!r.ok) {
-      console.error('Seats API error:', j);
+
+      console.error(
+        'Seats API error:',
+        j
+      );
 
       $('seats').innerHTML =
-        '<p style="color:red">Seat availability load nahi ho rahi.</p>';
+        '<p style="color:red">' +
+        'Seat availability load nahi ho rahi.' +
+        '</p>';
 
       return;
     }
 
-    $('seats').innerHTML = '';
 
-    const booked = new Set(
-      (j.booked || []).map(Number)
-    );
+    $('seats').innerHTML =
+      '';
 
-    const held = new Set(
-      (j.held || []).map(Number)
-    );
 
-    const totalSeats = Number(
-      config.totalSeats || 55
-    );
+    /*
+     * RED SEATS
+     * Payment confirmed
+     */
 
-    for (let i = 1; i <= totalSeats; i++) {
+    const booked =
+      new Set(
+        (j.booked || [])
+          .map(Number)
+      );
 
-      const isBooked = booked.has(i);
-      const isHeld = held.has(i);
 
-      const x = document.createElement('button');
+    /*
+     * ORANGE SEATS
+     * Payment pending/submitted
+     */
 
-      x.className =
-        'seat ' +
-        (isBooked ? 'booked ' : '') +
-        (isHeld ? 'held ' : '') +
-        (selected === i ? 'sel' : '');
+    const pending =
+      new Set(
+        (j.pending || [])
+          .map(Number)
+      );
 
-      x.textContent = 'S' + i;
 
-      x.disabled = isBooked || isHeld;
+    /*
+     * Total seats
+     */
 
-      if (!x.disabled) {
+    const totalSeats =
+      Number(
+        config.totalSeats || 55
+      );
+
+
+    /*
+     * Create all seats
+     */
+
+    for (
+      let i = 1;
+      i <= totalSeats;
+      i++
+    ) {
+
+
+      const x =
+        document.createElement(
+          'button'
+        );
+
+
+      x.type =
+        'button';
+
+
+      x.textContent =
+        'S' + i;
+
+
+      /*
+       * =================================
+       * RED = PAID / BOOKED
+       * =================================
+       */
+
+      if (
+        booked.has(i)
+      ) {
+
+        x.className =
+          'seat booked';
+
+        x.disabled =
+          true;
+
+        x.title =
+          'Seat permanently booked';
+
+
+      }
+
+
+      /*
+       * =================================
+       * ORANGE = PAYMENT PENDING
+       * =================================
+       */
+
+      else if (
+        pending.has(i)
+      ) {
+
+        x.className =
+          'seat pending';
+
+        x.disabled =
+          true;
+
+        x.title =
+          'Booking active - payment pending';
+
+
+      }
+
+
+      /*
+       * =================================
+       * GREEN = FREE
+       * =================================
+       */
+
+      else {
+
+        x.className =
+          'seat';
+
+
+        /*
+         * Selected seat
+         */
+
+        if (
+          selected === i
+        ) {
+
+          x.classList.add(
+            'sel'
+          );
+
+        }
+
+
+        x.disabled =
+          false;
+
+
+        x.title =
+          'Available seat';
+
+
+        /*
+         * Select seat
+         */
 
         x.onclick = () => {
 
           selected = i;
 
-          $('selected').textContent = 'S' + i;
+
+          if ($('selected')) {
+
+            $('selected').textContent =
+              'S' + i;
+
+          }
+
 
           seats();
+
         };
+
       }
 
-      $('seats').appendChild(x);
+
+      $('seats')
+        .appendChild(x);
+
     }
+
 
   } catch (e) {
 
-    console.error('Seat loading error:', e);
+    console.error(
+      'Seat loading error:',
+      e
+    );
+
 
     $('seats').innerHTML =
-      '<p style="color:red">Unable to load seats.</p>';
+      '<p style="color:red">' +
+      'Unable to load seats.' +
+      '</p>';
+
   }
+
 }
 
 
-/* =========================
+/* =========================================================
    RECEIPT
-========================= */
+   ========================================================= */
 
 function showReceipt() {
 
   $('receipt').innerHTML =
-    '<b>Booking ID:</b> ' + booking.id +
-    '<br><b>Student:</b> ' + escapeHtml(booking.name) +
-    '<br><b>Seat:</b> S' + booking.seat +
-    '<br><b>Date:</b> ' + booking.date +
-    '<br><b>Shift:</b> ' + booking.shift +
-    '<br><b>Plan:</b> ' + booking.plan +
-    '<br><b>Amount:</b> ₹' + booking.amount;
+
+    '<b>Booking ID:</b> ' +
+    escapeHtml(
+      booking.id
+    ) +
+
+    '<br><b>Student:</b> ' +
+    escapeHtml(
+      booking.name
+    ) +
+
+    '<br><b>Seat:</b> S' +
+    escapeHtml(
+      booking.seat
+    ) +
+
+    '<br><b>Date:</b> ' +
+    escapeHtml(
+      booking.date
+    ) +
+
+    '<br><b>Shift:</b> ' +
+    escapeHtml(
+      booking.shift
+    ) +
+
+    '<br><b>Plan:</b> ' +
+    escapeHtml(
+      booking.plan
+    ) +
+
+    '<br><b>Amount:</b> ₹' +
+    escapeHtml(
+      booking.amount
+    );
+
 }
 
 
-/* =========================
+/* =========================================================
    HTML ESCAPE
-========================= */
+   ========================================================= */
 
 function escapeHtml(v) {
+
   return String(v).replace(
     /[&<>"']/g,
+
     m => ({
       '&': '&amp;',
       '<': '&lt;',
@@ -389,300 +1447,645 @@ function escapeHtml(v) {
       '"': '&quot;',
       "'": '&#039;'
     }[m])
+
   );
+
 }
 
 
-/* =========================
+/* =========================================================
    BOOKING
-========================= */
+   ========================================================= */
 
 async function book() {
 
   if (!selected) {
-    return alert('Select an available seat.');
+
+    return alert(
+      'Select an available seat.'
+    );
+
   }
 
+
   if (
+
     !$('name').value.trim() ||
+
     !$('fatherName').value.trim() ||
+
     !$('address').value.trim() ||
-    !/^\d{10}$/.test($('mobile').value)
+
+    !/^\d{10}$/.test(
+      $('mobile').value
+    )
+
   ) {
+
     return alert(
       'Enter student name, father name, full address and valid 10-digit mobile.'
     );
+
   }
 
-  const seatAtBooking = selected;
 
-  const r = await apiFetch(
-    '/api/bookings',
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        name: $('name').value.trim(),
-        fatherName: $('fatherName').value.trim(),
-        mobile: $('mobile').value,
-        email: $('email').value,
-        address: $('address').value.trim(),
-        seat: seatAtBooking,
-        date: $('date').value,
-        shift: $('shift').value,
-        plan: $('plan').value
-      })
+  const seatAtBooking =
+    selected;
+
+
+  try {
+
+    const r =
+      await apiFetch(
+        '/api/bookings',
+        {
+          method: 'POST',
+
+          headers: {
+            'Content-Type':
+              'application/json'
+          },
+
+          body:
+            JSON.stringify({
+
+              name:
+                $('name')
+                  .value
+                  .trim(),
+
+              fatherName:
+                $('fatherName')
+                  .value
+                  .trim(),
+
+              mobile:
+                $('mobile')
+                  .value,
+
+              email:
+                $('email')
+                  .value,
+
+              address:
+                $('address')
+                  .value
+                  .trim(),
+
+              seat:
+                seatAtBooking,
+
+              date:
+                $('date')
+                  .value,
+
+              shift:
+                $('shift')
+                  .value,
+
+              plan:
+                $('plan')
+                  .value
+
+            })
+
+        }
+      );
+
+
+    const j =
+      await r.json();
+
+
+    if (!r.ok) {
+
+      selected =
+        null;
+
+
+      if ($('selected')) {
+
+        $('selected')
+          .textContent =
+          'None';
+
+      }
+
+
+      seats();
+
+
+      return alert(
+        j.error ||
+        'Booking failed.'
+      );
+
     }
-  );
 
-  const j = await r.json();
 
-  if (!r.ok) {
+    booking = {
 
-    selected = null;
+      ...j,
+
+      name:
+        $('name').value,
+
+      fatherName:
+        $('fatherName').value,
+
+      mobile:
+        $('mobile').value,
+
+      address:
+        $('address')
+          .value
+          .trim(),
+
+      seat:
+        seatAtBooking,
+
+      date:
+        $('date').value,
+
+      shift:
+        $('shift').value,
+
+      plan:
+        $('plan').value
+
+    };
+
+
+    showReceipt();
+
+
+    $('paymentStatus')
+      .textContent =
+      'Payment pending. Your seat is already permanently booked. Complete payment, then click "I Have Paid".';
+
+
+    $('paidBtn').disabled =
+      false;
+
+
+    $('paidBtn').style.display =
+      'inline-block';
+
+
+    $('wa').style.display =
+      'none';
+
+
+    $('modal')
+      .classList
+      .add('on');
+
+
+    selected =
+      null;
+
+
+    if ($('selected')) {
+
+      $('selected')
+        .textContent =
+        'None';
+
+    }
+
+
+    /*
+     * Immediately show the newly
+     * booked seat as orange.
+     */
 
     seats();
 
-    return alert(
-      j.error || 'Booking failed.'
+
+    await setupUpi();
+
+
+  } catch (e) {
+
+    console.error(
+      'Booking error:',
+      e
     );
+
+    alert(
+      'Booking failed. Please try again.'
+    );
+
   }
 
-  booking = {
-    ...j,
-
-    name: $('name').value,
-    fatherName: $('fatherName').value,
-    mobile: $('mobile').value,
-    address: $('address').value.trim(),
-
-    seat: seatAtBooking,
-    date: $('date').value,
-    shift: $('shift').value,
-    plan: $('plan').value
-  };
-
-  showReceipt();
-
-  $('paymentStatus').textContent =
-    'Payment pending. Your seat is already permanently booked. Complete payment, then click "I Have Paid".';
-
-  $('paidBtn').disabled = false;
-  $('paidBtn').style.display = 'inline-block';
-
-  $('wa').style.display = 'none';
-
-  $('modal').classList.add('on');
-
-  selected = null;
-
-  seats();
-
-  await setupUpi();
 }
 
 
-/* =========================
+/* =========================================================
    UPI PAYMENT
-========================= */
+   ========================================================= */
 
 async function setupUpi() {
 
-  $('payAmount').textContent =
-    booking.amount;
+  try {
 
-  $('upiText').textContent =
-    config.upiId || 'UPI ID not configured';
+    $('payAmount')
+      .textContent =
+      booking.amount;
 
-  $('upiName').textContent =
-    config.upiName || 'Sainik Library';
 
-  const r = await apiFetch(
-    '/api/payment/qr?amount=' +
-    encodeURIComponent(booking.amount) +
-    '&bookingId=' +
-    encodeURIComponent(booking.id)
-  );
+    $('upiText')
+      .textContent =
+      config.upiId ||
+      'UPI ID not configured';
 
-  const j = await r.json();
 
-  if (!r.ok) {
+    $('upiName')
+      .textContent =
+      config.upiName ||
+      'Sainik Library';
 
-    $('paymentStatus').textContent =
-      j.error || 'Payment setup failed.';
 
-    return;
+    const r =
+      await apiFetch(
+        '/api/payment/qr?amount=' +
+        encodeURIComponent(
+          booking.amount
+        ) +
+        '&bookingId=' +
+        encodeURIComponent(
+          booking.id
+        )
+      );
+
+
+    const j =
+      await r.json();
+
+
+    if (!r.ok) {
+
+      $('paymentStatus')
+        .textContent =
+        j.error ||
+        'Payment setup failed.';
+
+      return;
+
+    }
+
+
+    booking.upiLink =
+      j.upiLink;
+
+
+    $('paymentQr').src =
+      j.qrDataUrl;
+
+
+  } catch (e) {
+
+    console.error(
+      'UPI setup error:',
+      e
+    );
+
+    $('paymentStatus')
+      .textContent =
+      'Payment setup failed.';
+
   }
 
-  booking.upiLink = j.upiLink;
-
-  $('paymentQr').src =
-    j.qrDataUrl;
 }
 
+
+/* =========================================================
+   OPEN UPI APP
+   ========================================================= */
 
 function openUpi(type) {
 
-  if (!booking?.upiLink) {
+  if (
+    !booking ||
+    !booking.upiLink
+  ) {
+
     return alert(
       'Payment QR/link is not ready.'
     );
+
   }
 
-  const link = booking.upiLink;
 
-  if (type === 'phonepe') {
+  const link =
+    booking.upiLink;
 
-    const u = link.replace(
-      /^upi:\/\//,
-      'phonepe://'
-    );
 
-    window.location.href = u;
+  if (
+    type === 'phonepe'
+  ) {
 
-  } else if (type === 'gpay') {
+    const u =
+      link.replace(
+        /^upi:\/\//,
+        'phonepe://'
+      );
 
-    const u = link.replace(
-      /^upi:\/\//,
-      'tez://'
-    );
+    window.location.href =
+      u;
 
-    window.location.href = u;
+
+  } else if (
+    type === 'gpay'
+  ) {
+
+    const u =
+      link.replace(
+        /^upi:\/\//,
+        'tez://'
+      );
+
+    window.location.href =
+      u;
+
 
   } else {
 
-    window.location.href = link;
+    window.location.href =
+      link;
+
   }
+
 }
 
 
-/* =========================
+/* =========================================================
    PAYMENT CLAIM
-========================= */
+   ========================================================= */
 
 async function markPaid() {
 
-  if (!booking?.id) return;
-
-  $('paidBtn').disabled = true;
-
-  const r = await apiFetch(
-    '/api/payment/claim',
-    {
-      method: 'POST',
-
-      headers: {
-        'Content-Type': 'application/json'
-      },
-
-      body: JSON.stringify({
-        bookingId: booking.id
-      })
-    }
-  );
-
-  const j = await r.json();
-
-  if (!r.ok) {
-
-    $('paidBtn').disabled = false;
-
-    return alert(
-      j.error ||
-      'Could not submit payment status.'
-    );
+  if (
+    !booking ||
+    !booking.id
+  ) {
+    return;
   }
 
-  $('paymentStatus').innerHTML =
-    '🟡 <b>Payment proof submitted.</b> Please send your payment receipt/screenshot on WhatsApp. Admin will verify the payment; your seat remains permanently booked.';
 
-  const text =
-    'Namaste Sainik Library, I have paid for booking ' +
-    booking.id +
-    '. Please verify my payment. Name: ' +
-    booking.name +
-    ', Seat: S' +
-    booking.seat +
-    ', Date: ' +
-    booking.date +
-    ', Shift: ' +
-    booking.shift +
-    ', Amount: ₹' +
-    booking.amount +
-    '. I will send the payment receipt/screenshot here.';
+  $('paidBtn').disabled =
+    true;
 
-  $('wa').href =
-    'https://wa.me/918765196654?text=' +
-    encodeURIComponent(text);
 
-  $('wa').textContent =
-    '💬 Send Payment Receipt on WhatsApp';
+  try {
 
-  $('wa').style.display =
-    'inline-block';
+    const r =
+      await apiFetch(
+        '/api/payment/claim',
+        {
+          method: 'POST',
 
-  seats();
+          headers: {
+            'Content-Type':
+              'application/json'
+          },
+
+          body:
+            JSON.stringify({
+              bookingId:
+                booking.id
+            })
+
+        }
+      );
+
+
+    const j =
+      await r.json();
+
+
+    if (!r.ok) {
+
+      $('paidBtn').disabled =
+        false;
+
+      return alert(
+        j.error ||
+        'Could not submit payment status.'
+      );
+
+    }
+
+
+    $('paymentStatus')
+      .innerHTML =
+      '🟡 <b>Payment proof submitted.</b> Please send your payment receipt/screenshot on WhatsApp. Admin will verify the payment; your seat remains permanently booked.';
+
+
+    const text =
+      'Namaste Sainik Library, I have paid for booking ' +
+      booking.id +
+      '. Please verify my payment. Name: ' +
+      booking.name +
+      ', Seat: S' +
+      booking.seat +
+      ', Date: ' +
+      booking.date +
+      ', Shift: ' +
+      booking.shift +
+      ', Amount: ₹' +
+      booking.amount +
+      '. I will send the payment receipt/screenshot here.';
+
+
+    $('wa').href =
+      'https://wa.me/918765196654?text=' +
+      encodeURIComponent(text);
+
+
+    $('wa').textContent =
+      '💬 Send Payment Receipt on WhatsApp';
+
+
+    $('wa').style.display =
+      'inline-block';
+
+
+    /*
+     * Seat stays ORANGE
+     * because payment is submitted
+     */
+
+    seats();
+
+
+  } catch (e) {
+
+    console.error(
+      'Payment claim error:',
+      e
+    );
+
+    $('paidBtn').disabled =
+      false;
+
+    alert(
+      'Could not submit payment status.'
+    );
+
+  }
+
 }
 
 
-/* =========================
-   DATE / SHIFT CHANGE
-========================= */
+/* =========================================================
+   DATE CHANGE
+   =========================================================
 
-$('date').onchange = () => {
+   IMPORTANT:
+   Date changes only booking date.
+   It does NOT change permanent seat status.
+   ========================================================= */
 
-  selected = null;
+if ($('date')) {
 
-  $('selected').textContent = 'None';
+  $('date').onchange = () => {
 
-  seats();
-};
-
-
-$('shift').onchange = () => {
-
-  selected = null;
-
-  $('selected').textContent = 'None';
-
-  seats();
-};
+    selected =
+      null;
 
 
-/* =========================
-   LOAD CONFIG
-========================= */
+    if ($('selected')) {
 
-apiFetch('/api/config')
-  .then(r => r.json())
-  .then(j => {
+      $('selected')
+        .textContent =
+        'None';
 
-    config = j;
+    }
 
-    $('nt').textContent =
-      j.noticeTitle || '';
 
-    $('nx').textContent =
-      j.noticeText || '';
+    /*
+     * Reload seats, but the API
+     * does not use date.
+     */
 
     seats();
+
+  };
+
+}
+
+
+/* =========================================================
+   SHIFT CHANGE
+   =========================================================
+
+   Shift changes only new booking
+   information.
+
+   Existing permanent seat status
+   remains unchanged.
+   ========================================================= */
+
+if ($('shift')) {
+
+  $('shift').onchange = () => {
+
+    selected =
+      null;
+
+
+    if ($('selected')) {
+
+      $('selected')
+        .textContent =
+        'None';
+
+    }
+
+
+    seats();
+
+  };
+
+}
+
+
+/* =========================================================
+   LOAD CONFIG
+   ========================================================= */
+
+apiFetch(
+  '/api/config'
+)
+
+  .then(r => {
+
+    if (!r.ok) {
+      throw new Error(
+        'Config request failed'
+      );
+    }
+
+    return r.json();
+
   })
+
+  .then(j => {
+
+    config =
+      j || {};
+
+
+    if ($('nt')) {
+
+      $('nt').textContent =
+        j.noticeTitle || '';
+
+    }
+
+
+    if ($('nx')) {
+
+      $('nx').textContent =
+        j.noticeText || '';
+
+    }
+
+
+    /*
+     * Load permanent seat status.
+     */
+
+    seats();
+
+  })
+
   .catch(e => {
+
     console.error(
       'Config loading error:',
       e
     );
+
+
+    /*
+     * Even if config fails,
+     * try to load seats.
+     */
+
+    seats();
+
   });
 
 
-/* =========================
+/* =========================================================
    LOAD SUCCESS STUDENTS
-========================= */
+   ========================================================= */
 
 loadSuccessStudents();
 
 </script>
+
 
 </body></html>

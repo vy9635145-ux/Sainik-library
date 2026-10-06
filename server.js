@@ -167,6 +167,7 @@ function auth(req, res, next) {
     req.admin = jwt.verify(token, SECRET);
 
     next();
+
   } catch (e) {
     res.status(401).json({
       error: "Unauthorized"
@@ -181,11 +182,13 @@ function auth(req, res, next) {
 
 app.get("/api/config", async (req, res) => {
   try {
+
     const totalSeats = Number(
       await setting("total_seats", "55")
     );
 
     res.json({
+
       totalSeats:
         Number.isInteger(totalSeats) && totalSeats > 0
           ? totalSeats
@@ -217,7 +220,11 @@ app.get("/api/config", async (req, res) => {
     });
 
   } catch (e) {
-    console.error("Config error:", e);
+
+    console.error(
+      "Config error:",
+      e
+    );
 
     res.status(500).json({
       error: "Could not load config"
@@ -232,6 +239,7 @@ app.get("/api/config", async (req, res) => {
 
 app.get("/api/payment/qr", async (req, res) => {
   try {
+
     const {
       amount,
       bookingId
@@ -274,7 +282,11 @@ app.get("/api/payment/qr", async (req, res) => {
     });
 
   } catch (e) {
-    console.error("Payment QR error:", e);
+
+    console.error(
+      "Payment QR error:",
+      e
+    );
 
     res.status(500).json({
       error: "Could not create payment QR"
@@ -284,76 +296,74 @@ app.get("/api/payment/qr", async (req, res) => {
 
 
 /* =========================================================
-   SEAT AVAILABILITY
+   PERMANENT SEAT AVAILABILITY
    =========================================================
-   
-   Morning:
-   - Morning booked
-   - Full Day booked
 
-   Evening:
-   - Evening booked
-   - Full Day booked
+   IMPORTANT:
 
-   Full Day:
-   - Morning booked
-   - Evening booked
-   - Full Day booked
+   Seat status is now PERMANENT and independent of:
 
-   Cancelled bookings are NOT included.
+   - Date
+   - Shift
+
+   Active booking:
+   - payment_status = paid
+       => RED / BOOKED
+
+   Active booking:
+   - payment_status = pending
+   - payment_status = submitted
+       => ORANGE / PAYMENT NOT CONFIRMED
+
+   Cancelled booking:
+       => NOT INCLUDED
+       => Seat becomes GREEN / FREE
+
+   Therefore:
+
+   Example:
+
+   S3 booked on 2026-10-01
+
+   Then S3 remains booked on:
+
+   2026-10-02
+   2026-10-10
+   2026-11-01
+   Any date
+
+   until admin cancels the booking.
+
    ========================================================= */
 
 app.get("/api/seats", async (req, res) => {
+
   try {
-    const rawShift =
-      String(req.query.shift || "").trim();
 
-    const date =
-      String(req.query.date || "").trim();
+    /*
+      We intentionally DO NOT use:
 
-    if (!rawShift || !date) {
-      return res.status(400).json({
-        error: "shift and date required"
-      });
-    }
+      req.query.date
+      req.query.shift
 
-    const validShifts = [
-      "Morning",
-      "Evening",
-      "Full Day"
-    ];
-
-    if (!validShifts.includes(rawShift)) {
-      return res.status(400).json({
-        error: "Invalid shift"
-      });
-    }
-
-    const shifts =
-      conflictingShifts(rawShift);
-
-    const params = [
-      date,
-      ...shifts
-    ];
-
-    const shiftPlaceholders =
-      placeholders(2, shifts.length);
+      because seat status is permanent.
+    */
 
     const rows = await all(
-      `SELECT seat, status, shift
+      `SELECT
+         seat,
+         payment_status,
+         status
        FROM bookings
-       WHERE date::date = $1::date
-       AND shift IN (${shiftPlaceholders})
-       AND status IN ('pending', 'confirmed')
-       ORDER BY seat ASC`,
-      params
+       WHERE status IN ('pending', 'confirmed')
+       ORDER BY seat ASC`
     );
 
     const booked = [];
-    const held = [];
+    const pending = [];
 
     for (const row of rows) {
+
       const seatNumber =
         Number(row.seat);
 
@@ -361,21 +371,42 @@ app.get("/api/seats", async (req, res) => {
         continue;
       }
 
-      if (row.status === "confirmed") {
-        booked.push(seatNumber);
-      }
+      /*
+        PAID payment
+        => RED
+      */
+      if (
+        String(row.payment_status || "")
+          .toLowerCase() === "paid"
+      ) {
 
-      if (row.status === "pending") {
-        held.push(seatNumber);
+        booked.push(seatNumber);
+
+      } else {
+
+        /*
+          PENDING or SUBMITTED
+          => ORANGE
+        */
+
+        pending.push(seatNumber);
       }
     }
 
     res.json({
-      booked: [...new Set(booked)],
-      held: [...new Set(held)]
+
+      booked: [
+        ...new Set(booked)
+      ],
+
+      pending: [
+        ...new Set(pending)
+      ]
+
     });
 
   } catch (e) {
+
     console.error(
       "Seats API error:",
       e
@@ -393,7 +424,9 @@ app.get("/api/seats", async (req, res) => {
    ========================================================= */
 
 app.post("/api/login", async (req, res) => {
+
   try {
+
     const {
       username,
       password
@@ -412,6 +445,7 @@ app.post("/api/login", async (req, res) => {
         admin.password_hash
       )
     ) {
+
       return res.status(401).json({
         error: "Invalid credentials"
       });
@@ -434,7 +468,11 @@ app.post("/api/login", async (req, res) => {
     });
 
   } catch (e) {
-    console.error("Login error:", e);
+
+    console.error(
+      "Login error:",
+      e
+    );
 
     res.status(500).json({
       error: "Login failed"
@@ -447,25 +485,35 @@ app.post("/api/login", async (req, res) => {
    GET ALL BOOKINGS - ADMIN
    ========================================================= */
 
-app.get("/api/bookings", auth, async (req, res) => {
-  try {
-    const bookings =
-      await all(
-        `SELECT *
-         FROM bookings
-         ORDER BY created_at DESC`
+app.get(
+  "/api/bookings",
+  auth,
+  async (req, res) => {
+
+    try {
+
+      const bookings =
+        await all(
+          `SELECT *
+           FROM bookings
+           ORDER BY created_at DESC`
+        );
+
+      res.json(bookings);
+
+    } catch (e) {
+
+      console.error(
+        "Bookings error:",
+        e
       );
 
-    res.json(bookings);
-
-  } catch (e) {
-    console.error("Bookings error:", e);
-
-    res.status(500).json({
-      error: "Could not load bookings"
-    });
+      res.status(500).json({
+        error: "Could not load bookings"
+      });
+    }
   }
-});
+);
 
 
 /* =========================================================
@@ -475,7 +523,9 @@ app.get("/api/bookings", auth, async (req, res) => {
 app.get(
   "/api/success-students",
   async (req, res) => {
+
     try {
+
       const students =
         await all(
           `SELECT *
@@ -486,6 +536,7 @@ app.get(
       res.json(students);
 
     } catch (e) {
+
       console.error(
         "Success students error:",
         e
@@ -507,7 +558,9 @@ app.post(
   "/api/success-students",
   auth,
   async (req, res) => {
+
     try {
+
       const {
         name,
         photo = "",
@@ -519,6 +572,7 @@ app.post(
       } = req.body || {};
 
       if (!String(name || "").trim()) {
+
         return res.status(400).json({
           error: "Student name is required"
         });
@@ -528,6 +582,7 @@ app.post(
         String(photo).length >
         4_500_000
       ) {
+
         return res.status(400).json({
           error:
             "Photo is too large. Please use a smaller image."
@@ -574,6 +629,7 @@ app.post(
       });
 
     } catch (e) {
+
       console.error(
         "Add success student error:",
         e
@@ -595,7 +651,9 @@ app.put(
   "/api/success-students/:id",
   auth,
   async (req, res) => {
+
     try {
+
       const old =
         await one(
           "SELECT * FROM success_students WHERE id=$1",
@@ -603,6 +661,7 @@ app.put(
         );
 
       if (!old) {
+
         return res.status(404).json({
           error: "Student record not found"
         });
@@ -619,6 +678,7 @@ app.put(
       } = req.body || {};
 
       if (!String(name || "").trim()) {
+
         return res.status(400).json({
           error: "Student name is required"
         });
@@ -633,6 +693,7 @@ app.put(
         finalPhoto.length >
         4_500_000
       ) {
+
         return res.status(400).json({
           error:
             "Photo is too large. Please use a smaller image."
@@ -669,6 +730,7 @@ app.put(
       });
 
     } catch (e) {
+
       console.error(
         "Update success student error:",
         e
@@ -690,7 +752,9 @@ app.delete(
   "/api/success-students/:id",
   auth,
   async (req, res) => {
+
     try {
+
       const result =
         await query(
           "DELETE FROM success_students WHERE id=$1",
@@ -698,6 +762,7 @@ app.delete(
         );
 
       if (!result.rowCount) {
+
         return res.status(404).json({
           error: "Student record not found"
         });
@@ -708,6 +773,7 @@ app.delete(
       });
 
     } catch (e) {
+
       console.error(
         "Delete success student error:",
         e
@@ -723,220 +789,247 @@ app.delete(
 
 /* =========================================================
    CREATE BOOKING
+   =========================================================
+
+   IMPORTANT:
+
+   Seat is permanently locked after booking.
+
+   Date and shift are NOT used for deciding
+   whether a seat is already occupied.
+
+   Example:
+
+   S10 booked today
+
+   Then nobody can book S10 tomorrow,
+   next week, next month, etc.
+
+   Only admin cancellation releases S10.
+
    ========================================================= */
 
-app.post("/api/bookings", async (req, res) => {
+app.post(
+  "/api/bookings",
+  async (req, res) => {
 
-  const {
-    name,
-    fatherName = "",
-    father_name = "",
-    mobile,
-    email = "",
-    address = "",
-    seat,
-    date,
-    shift,
-    plan = "Daily"
-  } = req.body || {};
+    const {
+      name,
+      fatherName = "",
+      father_name = "",
+      mobile,
+      email = "",
+      address = "",
+      seat,
+      date,
+      shift,
+      plan = "Daily"
+    } = req.body || {};
 
-  const father =
-    String(
-      fatherName || father_name || ""
-    ).trim();
-
-  try {
-
-    const total =
-      Number(
-        await setting(
-          "total_seats",
-          "55"
-        )
-      );
-
-    const seatNumber =
-      Number(seat);
-
-    if (
-      !String(name || "").trim() ||
-      !father ||
-      !String(address || "").trim() ||
-      !/^[0-9]{10}$/.test(
-        String(mobile || "")
-      ) ||
-      !Number.isInteger(seatNumber) ||
-      seatNumber < 1 ||
-      seatNumber > total ||
-      !date ||
-      ![
-        "Morning",
-        "Evening",
-        "Full Day"
-      ].includes(shift)
-    ) {
-      return res.status(400).json({
-        error: "Invalid booking details"
-      });
-    }
-
-    const amount =
-      amountForPlan(plan);
-
-    const id =
-      "SL-" +
-      Date.now()
-        .toString()
-        .slice(-8) +
-      Math.floor(
-        Math.random() * 90 + 10
-      );
-
-    const shifts =
-      conflictingShifts(shift);
-
-    const client =
-      await pool.connect();
+    const father =
+      String(
+        fatherName ||
+        father_name ||
+        ""
+      ).trim();
 
     try {
 
-      await client.query("BEGIN");
-
-      const existing =
-        await client.query(
-          `SELECT id, shift
-           FROM bookings
-           WHERE seat=$1
-           AND date::date=$2::date
-           AND shift IN (${placeholders(
-             3,
-             shifts.length
-           )})
-           AND status IN
-             ('pending','confirmed')
-           FOR UPDATE`,
-          [
-            seatNumber,
-            date,
-            ...shifts
-          ]
+      const total =
+        Number(
+          await setting(
+            "total_seats",
+            "55"
+          )
         );
 
-      if (existing.rows.length) {
-        throw new Error(
-          "SEAT_CONFLICT"
-        );
-      }
-
-      await client.query(
-        `INSERT INTO bookings
-        (
-          id,
-          name,
-          father_name,
-          mobile,
-          email,
-          address,
-          seat,
-          date,
-          shift,
-          plan,
-          created_at,
-          status,
-          payment_status,
-          amount
-        )
-        VALUES
-        (
-          $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
-          $11,'confirmed','pending',$12
-        )`,
-        [
-          id,
-          String(name).trim(),
-          father,
-          String(mobile),
-          String(email || ""),
-          String(address).trim(),
-          seatNumber,
-          date,
-          shift,
-          plan,
-          new Date().toISOString(),
-          amount
-        ]
-      );
-
-      await client.query("COMMIT");
-
-      res.json({
-        id,
-        status: "confirmed",
-        paymentStatus: "pending",
-        amount
-      });
-
-    } catch (e) {
-
-      await client.query(
-        "ROLLBACK"
-      );
+      const seatNumber =
+        Number(seat);
 
       if (
-        e.message === "SEAT_CONFLICT" ||
-        e.code === "23505"
+        !String(name || "").trim() ||
+        !father ||
+        !String(address || "").trim() ||
+        !/^[0-9]{10}$/.test(
+          String(mobile || "")
+        ) ||
+        !Number.isInteger(seatNumber) ||
+        seatNumber < 1 ||
+        seatNumber > total ||
+        !date ||
+        ![
+          "Morning",
+          "Evening",
+          "Full Day"
+        ].includes(shift)
       ) {
 
-        let message =
-          "This seat is already booked.";
-
-        if (shift === "Morning") {
-          message =
-            "This seat is already booked for Morning or Full Day. It stays locked until admin cancellation.";
-        }
-
-        if (shift === "Evening") {
-          message =
-            "This seat is already booked for Evening or Full Day. It stays locked until admin cancellation.";
-        }
-
-        if (shift === "Full Day") {
-          message =
-            "This seat is already booked for Morning, Evening, or Full Day. It stays locked until admin cancellation.";
-        }
-
-        return res.status(409).json({
-          error: message
+        return res.status(400).json({
+          error: "Invalid booking details"
         });
       }
 
+      const amount =
+        amountForPlan(plan);
+
+      const id =
+        "SL-" +
+        Date.now()
+          .toString()
+          .slice(-8) +
+        Math.floor(
+          Math.random() * 90 + 10
+        );
+
+      const client =
+        await pool.connect();
+
+      try {
+
+        await client.query("BEGIN");
+
+
+        /* =====================================================
+           PERMANENT SEAT CONFLICT CHECK
+           =====================================================
+
+           NO date check
+           NO shift check
+
+           Only:
+
+           seat + active booking
+
+           Cancelled booking does NOT block the seat.
+           ===================================================== */
+
+        const existing =
+          await client.query(
+            `SELECT id, seat, payment_status, status
+             FROM bookings
+             WHERE seat=$1
+             AND status IN ('pending','confirmed')
+             FOR UPDATE`,
+            [
+              seatNumber
+            ]
+          );
+
+
+        if (existing.rows.length) {
+
+          throw new Error(
+            "SEAT_CONFLICT"
+          );
+        }
+
+
+        /* =====================================================
+           CREATE BOOKING
+           ===================================================== */
+
+        await client.query(
+          `INSERT INTO bookings
+          (
+            id,
+            name,
+            father_name,
+            mobile,
+            email,
+            address,
+            seat,
+            date,
+            shift,
+            plan,
+            created_at,
+            status,
+            payment_status,
+            amount
+          )
+          VALUES
+          (
+            $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
+            $11,'confirmed','pending',$12
+          )`,
+          [
+            id,
+            String(name).trim(),
+            father,
+            String(mobile),
+            String(email || ""),
+            String(address).trim(),
+            seatNumber,
+            date,
+            shift,
+            plan,
+            new Date().toISOString(),
+            amount
+          ]
+        );
+
+
+        await client.query("COMMIT");
+
+
+        res.json({
+          id,
+          status: "confirmed",
+          paymentStatus: "pending",
+          amount
+        });
+
+
+      } catch (e) {
+
+        await client.query(
+          "ROLLBACK"
+        );
+
+
+        if (
+          e.message === "SEAT_CONFLICT" ||
+          e.code === "23505"
+        ) {
+
+          return res.status(409).json({
+
+            error:
+              "This seat is already booked. It remains locked until admin cancellation."
+
+          });
+        }
+
+
+        console.error(
+          "Booking transaction error:",
+          e
+        );
+
+        res.status(500).json({
+          error: "Booking failed"
+        });
+
+
+      } finally {
+
+        client.release();
+
+      }
+
+
+    } catch (e) {
+
       console.error(
-        "Booking transaction error:",
+        "Booking error:",
         e
       );
 
       res.status(500).json({
         error: "Booking failed"
       });
-
-    } finally {
-
-      client.release();
-
     }
-
-  } catch (e) {
-
-    console.error(
-      "Booking error:",
-      e
-    );
-
-    res.status(500).json({
-      error: "Booking failed"
-    });
   }
-});
+);
 
 
 /* =========================================================
@@ -960,6 +1053,7 @@ app.post(
         );
 
       if (!booking) {
+
         return res.status(404).json({
           error: "Booking not found"
         });
@@ -968,6 +1062,7 @@ app.post(
       if (
         booking.status === "cancelled"
       ) {
+
         return res.status(400).json({
           error: "Booking is cancelled"
         });
@@ -976,6 +1071,7 @@ app.post(
       if (
         booking.payment_status === "paid"
       ) {
+
         return res.status(400).json({
           error:
             "Payment is already verified"
@@ -1028,6 +1124,7 @@ app.post(
         );
 
       if (!booking) {
+
         return res.status(404).json({
           error: "Booking not found"
         });
@@ -1036,6 +1133,7 @@ app.post(
       if (
         booking.status === "cancelled"
       ) {
+
         return res.status(400).json({
           error:
             "Booking is cancelled"
@@ -1097,6 +1195,7 @@ app.delete(
         );
 
       if (!booking) {
+
         return res.status(404).json({
           error: "Booking not found"
         });
@@ -1105,6 +1204,7 @@ app.delete(
       if (
         booking.status === "cancelled"
       ) {
+
         return res.status(400).json({
           error:
             "Booking is already cancelled"
@@ -1118,6 +1218,7 @@ app.delete(
         )
           .trim()
           .slice(0, 250);
+
 
       await query(
         `UPDATE bookings
@@ -1135,11 +1236,13 @@ app.delete(
         ]
       );
 
+
       res.json({
         ok: true,
         message:
           "Booking cancelled and seat released. Cancellation remains in admin history."
       });
+
 
     } catch (e) {
 
@@ -1175,6 +1278,7 @@ app.delete(
         );
 
       if (!booking) {
+
         return res.status(404).json({
           error: "Booking not found"
         });
@@ -1183,6 +1287,7 @@ app.delete(
       if (
         booking.status !== "cancelled"
       ) {
+
         return res.status(400).json({
           error:
             "Active booking cannot be deleted. Cancel it first."
@@ -1284,6 +1389,7 @@ app.post(
 app.get(
   "*",
   (req, res) => {
+
     res.sendFile(
       path.join(
         __dirname,
@@ -1308,10 +1414,12 @@ initDb()
     app.listen(
       port,
       () => {
+
         console.log(
           "Sainik Library server running on port " +
           port
         );
+
       }
     );
 
@@ -1340,4 +1448,3 @@ process.on(
     process.exit(0);
   }
 );
-
