@@ -817,17 +817,10 @@ textarea {
 <label>Shift</label><select id="shift"><option>Morning</option><option>Evening</option><option>Full Day</option></select>
 <div class="legend"><span><i class="dot free"></i>Available</span><span><i class="dot taken"></i>Booked</span><span><i class="dot" style="background:#fb923c"></i>Payment Pending</span><span><i class="dot chosen"></i>Selected</span></div>
 <div id="seats" class="seats"></div>
-<div id="seats" class="seats"></div>
 
 <p>Selected: <b id="selectedSeat">None</b></p>
 <input type="hidden" id="seat">
 
-<!-- yahan baaki booking fields -->
-
-<button id="bookingSubmit" class="btn" type="button">
-    Confirm Booking
-</button>
-<input type="hidden" id="seat">
 <div class="form">
 <input id="name" placeholder="Student name" required>
 <input id="fatherName" placeholder="Father name" required>
@@ -898,10 +891,13 @@ textarea {
 </div>
 <br>
 <a id="wa" class="btn" target="_blank">Send Booking on WhatsApp</a>
-<button class="btn close" onclick="modal.classList.remove('on')">Close</button>
+<button class="btn close" type="button" onclick="document.getElementById('modal').classList.remove('on')">Close</button>
 </div></div>
 <script>
-const API_BASE = "https://sainik-library.onrender.com";
+const API_BASE =
+    window.location.origin && window.location.origin !== "null"
+        ? window.location.origin
+        : "https://sainik-library.onrender.com";
 
 let selectedSeat = null;
 
@@ -1196,6 +1192,282 @@ function getValue(id) {
 
 
 /* =========================
+   PAYMENT HELPERS
+========================= */
+
+async function showPaymentSection(data) {
+
+    currentBookingId =
+        data.bookingId ||
+        data.id ||
+        data.booking?.id ||
+        currentBookingId;
+
+    currentBookingAmount =
+        Number(
+            data.amount ||
+            data.booking?.amount ||
+            currentBookingAmount ||
+            0
+        );
+
+    const modal = $("modal");
+    const receipt = $("receipt");
+    const payAmount = $("payAmount");
+    const paymentStatus = $("paymentStatus");
+    const paidBtn = $("paidBtn");
+    const wa = $("wa");
+
+    if (receipt) {
+        receipt.innerHTML = `
+            <b>Booking ID:</b> ${escapeHtml(currentBookingId || "—")}<br>
+            <b>Seat:</b> S${escapeHtml(data.seat || selectedSeat || "—")}<br>
+            <b>Shift:</b> ${escapeHtml(data.shift || getValue("shift"))}<br>
+            <b>Plan:</b> ${escapeHtml(data.plan || getValue("plan"))}<br>
+            <b>Amount:</b> ₹${escapeHtml(currentBookingAmount)}
+        `;
+    }
+
+    if (payAmount) {
+        payAmount.textContent = String(currentBookingAmount);
+    }
+
+    if (paymentStatus) {
+        paymentStatus.textContent =
+            "Payment pending. Complete the UPI payment and click “I Have Paid”.";
+    }
+
+    if (paidBtn) {
+        paidBtn.disabled = false;
+        paidBtn.textContent = "✅ I Have Paid";
+    }
+
+    try {
+        const configResponse =
+            await fetch(`${API_BASE}/api/config`, {
+                cache: "no-store"
+            });
+
+        const config =
+            await configResponse.json().catch(() => ({}));
+
+        const upiId = config.upiId || "";
+        const upiName = config.upiName || "Sainik Library";
+
+        if ($("upiText")) {
+            $("upiText").textContent = upiId || "UPI not configured";
+        }
+
+        if ($("upiName")) {
+            $("upiName").textContent = upiName;
+        }
+
+        if (!upiId) {
+            currentUpiLink = "";
+            if (paymentStatus) {
+                paymentStatus.textContent =
+                    "UPI payment is not configured yet. Please contact the library.";
+            }
+        } else {
+            const qrResponse =
+                await fetch(
+                    `${API_BASE}/api/payment/qr?amount=${encodeURIComponent(currentBookingAmount)}&bookingId=${encodeURIComponent(currentBookingId || "")}`,
+                    { cache: "no-store" }
+                );
+
+            const qrData =
+                await qrResponse.json().catch(() => ({}));
+
+            if (qrResponse.ok && qrData.upiLink) {
+                currentUpiLink = qrData.upiLink;
+
+                if ($("paymentQr") && qrData.qrDataUrl) {
+                    $("paymentQr").src = qrData.qrDataUrl;
+                }
+            } else if (paymentStatus) {
+                paymentStatus.textContent =
+                    qrData.error || "Could not generate payment QR.";
+            }
+        }
+    } catch (error) {
+        console.error("Payment setup error:", error);
+        if (paymentStatus) {
+            paymentStatus.textContent =
+                "Payment details could not be loaded. Please refresh or contact the library.";
+        }
+    }
+
+    if (wa) {
+        const name = getValue("name");
+        const mobile = getValue("mobile");
+        const date = getValue("date");
+        const shift = getValue("shift");
+        const seat = data.seat || selectedSeat || getValue("seat");
+
+        const message =
+            `Sainik Library Booking%0A` +
+            `Booking ID: ${encodeURIComponent(currentBookingId || "")}%0A` +
+            `Name: ${encodeURIComponent(name)}%0A` +
+            `Mobile: ${encodeURIComponent(mobile)}%0A` +
+            `Seat: S${encodeURIComponent(seat)}%0A` +
+            `Shift: ${encodeURIComponent(shift)}%0A` +
+            `Date: ${encodeURIComponent(date)}%0A` +
+            `Amount: ₹${encodeURIComponent(currentBookingAmount)}`;
+
+        wa.href = `https://wa.me/918765196654?text=${message}`;
+    }
+
+    if (modal) {
+        modal.classList.add("on");
+    }
+}
+
+
+function openUpi(provider) {
+
+    if (!currentUpiLink) {
+        alert("UPI payment link is not available. Please contact the library.");
+        return;
+    }
+
+    /*
+      Generic UPI URI works with installed UPI apps.
+      Provider buttons intentionally use the same safe UPI URI.
+    */
+    window.location.href = currentUpiLink;
+}
+
+
+async function markPaid() {
+
+    if (!currentBookingId) {
+        alert("Booking ID not found. Please create the booking again.");
+        return;
+    }
+
+    const button = $("paidBtn");
+    const status = $("paymentStatus");
+
+    if (button) {
+        button.disabled = true;
+        button.textContent = "Submitting...";
+    }
+
+    try {
+        const response =
+            await fetch(`${API_BASE}/api/payment/claim`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    bookingId: currentBookingId
+                })
+            });
+
+        const data =
+            await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(
+                data.error ||
+                data.message ||
+                "Could not submit payment status."
+            );
+        }
+
+        if (status) {
+            status.textContent =
+                "Payment marked as submitted. Library admin will verify it.";
+        }
+
+        if (button) {
+            button.textContent = "✅ Payment Submitted";
+            button.disabled = true;
+        }
+
+        await loadSeats();
+
+    } catch (error) {
+
+        console.error("Payment claim error:", error);
+
+        alert(
+            error.message ||
+            "Could not submit payment status."
+        );
+
+        if (button) {
+            button.disabled = false;
+            button.textContent = "✅ I Have Paid";
+        }
+    }
+}
+
+
+async function copyUpi() {
+
+    const value =
+        $("upiText")?.textContent?.trim() || "";
+
+    if (!value || value === "Loading..." || value === "UPI not configured") {
+        alert("UPI ID is not available.");
+        return;
+    }
+
+    try {
+
+        await navigator.clipboard.writeText(value);
+        alert("UPI ID copied.");
+
+    } catch (error) {
+
+        window.prompt("Copy UPI ID:", value);
+
+    }
+}
+
+
+/* =========================
+   DATE INITIALIZATION
+========================= */
+
+function initializeBookingDate() {
+
+    const dateInput = $("date");
+
+    if (!dateInput) {
+        return;
+    }
+
+    const today =
+        new Date().toISOString().split("T")[0];
+
+    /* Past dates are allowed for booking.
+       Keep today's date as the default only. */
+    dateInput.removeAttribute("min");
+
+    if (!dateInput.value) {
+        dateInput.value = today;
+    }
+
+    dateInput.addEventListener("change", function () {
+        selectedSeat = null;
+
+        if ($("seat")) {
+            $("seat").value = "";
+        }
+
+        if ($("selectedSeat")) {
+            $("selectedSeat").textContent = "None";
+        }
+
+        renderSeats();
+    });
+}
+
+
+/* =========================
    CREATE BOOKING
 ========================= */
 
@@ -1291,10 +1563,10 @@ async function createBooking(event) {
     }
 
 
-    if (!mobile) {
+    if (!/^[0-9]{10}$/.test(mobile)) {
 
         alert(
-            "Please enter mobile number."
+            "Please enter a valid 10-digit mobile number."
         );
 
         return;
@@ -1426,6 +1698,7 @@ async function createBooking(event) {
             if (response.status === 409) {
 
                 alert(
+                    data.error ||
                     data.message ||
                     "This seat is already booked for the selected shift."
                 );
@@ -1462,6 +1735,7 @@ async function createBooking(event) {
 
 
             throw new Error(
+                data.error ||
                 data.message ||
                 "Booking failed."
             );
@@ -1697,7 +1971,6 @@ function renderSuccessStudents() {
 
         track.innerHTML = `
             <div class="success-empty">
-                <h3>Our Successful Students</h3>
                 <p>Success stories will appear here soon.</p>
             </div>
         `;
@@ -2025,6 +2298,13 @@ document.addEventListener(
             );
 
         }
+
+
+        /* =========================
+           INITIALIZE DATE
+        ========================= */
+
+        initializeBookingDate();
 
 
         /* =========================

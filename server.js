@@ -520,14 +520,6 @@ app.get("/api/seats", async (req, res) => {
 
   try {
 
-    const total =
-      Number(
-        await setting(
-          "total_seats",
-          "55"
-        )
-      );
-
     let allowedShifts;
 
 
