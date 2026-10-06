@@ -4,22 +4,8 @@ const {Pool}=require("pg");
 const bcrypt=require("bcryptjs"), jwt=require("jsonwebtoken"), crypto=require("crypto"), QRCode=require("qrcode");
 
 const app=express();
-
-app.use((req,res,next)=>{
-  res.header("Access-Control-Allow-Origin","*");
-  res.header("Access-Control-Allow-Methods","GET,POST,PUT,DELETE,OPTIONS");
-  res.header("Access-Control-Allow-Headers","Origin, X-Requested-With, Content-Type, Accept, Authorization");
-
-  if(req.method==="OPTIONS"){
-    return res.sendStatus(204);
-  }
-
-  next();
-});
-
 app.use(express.json({limit:"6mb"}));
 app.use(express.static(path.join(__dirname,"public")));
-
 
 const DATABASE_URL=process.env.DATABASE_URL;
 if(!DATABASE_URL){
@@ -126,11 +112,11 @@ function auth(req,res,next){
 app.get("/api/config",async(req,res)=>{
   try{
     res.json({
-      totalSeats:Number(await setting("total_seats","55")),
+      totalSeats:Number(await setting("total_seats","40")),
       noticeTitle:await setting("notice_title","Admissions & seat booking open"),
       noticeText:await setting("notice_text","Contact the library for membership, timing and seat availability."),
       paymentMode:"upi_manual",
-      paymentAmount:Number(process.env.PAYMENT_AMOUNT||50),
+      paymentAmount:Number(process.env.PAYMENT_AMOUNT||2000),
       holdMinutes:0,
       upiId:process.env.UPI_ID||"",
       upiName:process.env.UPI_NAME||"Sainik Library"
@@ -215,7 +201,7 @@ app.post("/api/bookings",async(req,res)=>{
   const {name,fatherName="",father_name="",mobile,email="",address="",seat,date,shift,plan="Daily"}=req.body||{};
   const father=String(fatherName||father_name||"").trim();
   try{
-    const total=Number(await setting("total_seats","55"));
+    const total=Number(await setting("total_seats","40"));
     if(!name||!father||!address||!/^[0-9]{10}$/.test(mobile)||!Number.isInteger(Number(seat))||Number(seat)<1||Number(seat)>total||!date||!shift)
       return res.status(400).json({error:"Invalid booking details"});
     const amount=amountForPlan(plan);
