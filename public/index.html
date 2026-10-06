@@ -167,8 +167,61 @@ async function loadSuccessStudents(){
 }
 function showSuccess(i){const track=document.getElementById('successTrack');if(!track||!track.children.length)return;successIndex=i;track.style.transform=`translateX(-${i*100}%)`;document.querySelectorAll('.success-dot').forEach((d,n)=>d.classList.toggle('active',n===i));}
 async function seats(){
-  alert("Seat function chal raha hai");
-  let r=await apifetch('/api/seats?shift='+encodeURIComponent($('shift').value));
+  async function seats(){
+  try {
+    const r = await fetch(
+      '/api/seats?date=' +
+      encodeURIComponent($('date').value) +
+      '&shift=' +
+      encodeURIComponent($('shift').value)
+    );
+
+    const j = await r.json();
+
+    if (!r.ok) {
+      console.error(j);
+      $('seats').innerHTML =
+        '<p style="color:red">Seat availability load nahi ho rahi.</p>';
+      return;
+    }
+
+    $('seats').innerHTML = '';
+
+    const booked = new Set((j.booked || []).map(Number));
+    const held = new Set((j.held || []).map(Number));
+
+    for(let i=1; i<=Number(config.totalSeats || 55); i++){
+      const isBooked = booked.has(i);
+      const isHeld = held.has(i);
+
+      const x = document.createElement('button');
+
+      x.className =
+        'seat ' +
+        (isBooked ? 'booked ' : '') +
+        (isHeld ? 'held ' : '') +
+        (selected === i ? 'sel' : '');
+
+      x.textContent = 'S' + i;
+      x.disabled = isBooked || isHeld;
+
+      if(!x.disabled){
+        x.onclick = () => {
+          selected = i;
+          $('selected').textContent = 'S' + i;
+          seats();
+        };
+      }
+
+      $('seats').appendChild(x);
+    }
+
+  } catch(e) {
+    console.error(e);
+    $('seats').innerHTML =
+      '<p style="color:red">Unable to load seats.</p>';
+  }
+};
   let j=await r.json(); $('seats').innerHTML='';
   const booked=new Set(j.booked||[]), held=new Set(j.held||[]);
   for(let i=1;i<=Number(config.totalSeats||55);i++){

@@ -112,7 +112,7 @@ function auth(req,res,next){
 app.get("/api/config",async(req,res)=>{
   try{
     res.json({
-      totalSeats:Number(await setting("total_seats","40")),
+      totalSeats:Number(await setting("total_seats","55")),
       noticeTitle:await setting("notice_title","Admissions & seat booking open"),
       noticeText:await setting("notice_text","Contact the library for membership, timing and seat availability."),
       paymentMode:"upi_manual",
@@ -133,14 +133,39 @@ app.get("/api/payment/qr",async(req,res)=>{
   catch(e){res.status(500).json({error:"Could not create payment QR"});}
 });
 
-app.get("/api/seats",async(req,res)=>{
-  try{
-    const {shift}=req.query;
-    if(!shift)return res.status(400).json({error:"shift required"});
-    const shifts=conflictingShifts(shift);
-    const rows=await all(`SELECT seat,status FROM bookings WHERE shift IN (${placeholders(1,shifts.length)}) AND status IN ('pending','confirmed')`,shifts);
-    res.json({booked:rows.filter(x=>x.status==="confirmed").map(x=>x.seat),held:rows.filter(x=>x.status==="pending").map(x=>x.seat)});
-  }catch(e){console.error(e);res.status(500).json({error:"Could not load seats"});}
+app.get("/api/seats", async (req, res) => {
+  try {
+    const { shift, date } = req.query;
+
+    if (!shift || !date) {
+      return res.status(400).json({ error: "shift and date required" });
+    }
+
+    const shifts = conflictingShifts(shift);
+
+    const rows = await all(
+      `SELECT seat, status
+       FROM bookings
+       WHERE date = $1
+       AND shift IN (${placeholders(2, shifts.length)})
+       AND status IN ('pending','confirmed')`,
+      [date, ...shifts]
+    );
+
+    res.json({
+      booked: rows
+        .filter(x => x.status === "confirmed")
+        .map(x => Number(x.seat)),
+
+      held: rows
+        .filter(x => x.status === "pending")
+        .map(x => Number(x.seat))
+    });
+
+  } catch (e) {
+    console.error("Seats API error:", e);
+    res.status(500).json({ error: "Could not load seats" });
+  }
 });
 
 app.post("/api/login",async(req,res)=>{
@@ -201,7 +226,7 @@ app.post("/api/bookings",async(req,res)=>{
   const {name,fatherName="",father_name="",mobile,email="",address="",seat,date,shift,plan="Daily"}=req.body||{};
   const father=String(fatherName||father_name||"").trim();
   try{
-    const total=Number(await setting("total_seats","40"));
+    const total=Number(await setting("total_seats","55"));
     if(!name||!father||!address||!/^[0-9]{10}$/.test(mobile)||!Number.isInteger(Number(seat))||Number(seat)<1||Number(seat)>total||!date||!shift)
       return res.status(400).json({error:"Invalid booking details"});
     const amount=amountForPlan(plan);
