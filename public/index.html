@@ -454,123 +454,123 @@ textarea {
 /* =========================================================
    SUCCESS STUDENTS
    ========================================================= */
-
 .success-showcase {
-  background: linear-gradient(
-    180deg,
-    #f8fafc,
-    #fff
-  );
-
-  padding: 42px 6%;
-  overflow: hidden;
+    padding: 60px 0;
+    background: #f8fafc;
 }
 
 .success-head {
-  text-align: center;
-  margin-bottom: 20px;
+    text-align: center;
+    margin-bottom: 30px;
 }
 
 .success-head h2 {
-  margin: 0 0 8px;
+    margin-bottom: 8px;
 }
 
 .success-viewport {
-  max-width: 1100px;
-  margin: auto;
-  overflow: hidden;
-  border-radius: 20px;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
 }
 
 .success-track {
-  display: flex;
-  transition: transform 0.65s ease;
-  will-change: transform;
+    display: flex;
+    width: 100%;
+    transition: transform 0.5s ease;
 }
 
 .success-slide {
-  min-width: 100%;
-  padding: 4px;
+    min-width: 100%;
+    flex: 0 0 100%;
+    padding: 10px;
+    box-sizing: border-box;
 }
 
 .success-card {
-  display: grid;
-  grid-template-columns: 180px 1fr;
-  gap: 24px;
-  align-items: center;
-
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 20px;
-  padding: 22px;
-
-  box-shadow: 0 12px 30px #00000010;
-
-  min-height: 230px;
+    max-width: 850px;
+    margin: auto;
+    background: white;
+    border-radius: 20px;
+    padding: 25px;
+    display: flex;
+    gap: 25px;
+    align-items: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
 }
 
-.success-card img {
-  width: 180px;
-  height: 210px;
-  object-fit: cover;
-  border-radius: 16px;
-  background: #e2e8f0;
+.success-photo {
+    width: 180px;
+    height: 180px;
+    flex: 0 0 180px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 60px;
 }
 
-.success-card h3 {
-  font-size: 28px;
-  margin: 0 0 8px;
-  color: #081a33;
+.success-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
-.success-badge {
-  display: inline-block;
-  background: #fef3c7;
-  color: #92400e;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 800;
-  margin-bottom: 10px;
+.success-info {
+    flex: 1;
 }
 
-.success-meta {
-  display: grid;
-  grid-template-columns: repeat(
-    2,
-    minmax(0, 1fr)
-  );
-
-  gap: 8px;
-  margin-top: 14px;
+.success-info h3 {
+    margin-top: 0;
+    font-size: 25px;
 }
 
-.success-meta div {
-  background: #f8fafc;
-  border-radius: 10px;
-  padding: 9px;
-  font-size: 13px;
+.success-selection {
+    font-weight: 700;
 }
 
 .success-dots {
-  display: flex;
-  justify-content: center;
-  gap: 7px;
-  margin-top: 15px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
 }
 
 .success-dot {
-  width: 9px;
-  height: 9px;
-  border: 0;
-  border-radius: 50%;
-  background: #cbd5e1;
-  cursor: pointer;
+    width: 10px;
+    height: 10px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: #bbb;
+    cursor: pointer;
 }
 
 .success-dot.active {
-  background: #f2b84b;
-  transform: scale(1.25);
+    transform: scale(1.3);
+}
+
+.success-empty {
+    width: 100%;
+    text-align: center;
+    padding: 30px;
+}
+
+@media (max-width: 650px) {
+
+    .success-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .success-photo {
+        width: 140px;
+        height: 140px;
+        flex-basis: 140px;
+    }
+
 }
 
 
@@ -773,7 +773,34 @@ textarea {
 </div></section>
 
 
-<section id="success-students" class="success-showcase"><div class="wrap"><div class="success-head"><h2>🏆 Our Successful Students</h2><p class="muted">Students who prepared with Sainik Library and achieved their goal.</p></div><div id="successViewport" class="success-viewport"><div id="successTrack" class="success-track"></div></div><div id="successDots" class="success-dots"></div></div></section>
+<section id="success-students" class="success-showcase">
+
+    <div class="wrap">
+
+        <div class="success-head">
+
+            <h2>🏆 Our Successful Students</h2>
+
+            <p class="muted">
+                Students who prepared with Sainik Library
+                and achieved their goal.
+            </p>
+
+        </div>
+
+
+        <div id="successViewport" class="success-viewport">
+
+            <div id="successTrack" class="success-track"></div>
+
+        </div>
+
+
+        <div id="successDots" class="success-dots"></div>
+
+    </div>
+
+</section>
 
 <section id="features"><div class="wrap"><h2>Premium Facilities</h2><div class="grid">
 <div class="card">❄️ <h3>Full AC</h3><p class="muted">Comfortable study environment.</p></div>
@@ -790,7 +817,16 @@ textarea {
 <label>Shift</label><select id="shift"><option>Morning</option><option>Evening</option><option>Full Day</option></select>
 <div class="legend"><span><i class="dot free"></i>Available</span><span><i class="dot taken"></i>Booked</span><span><i class="dot" style="background:#fb923c"></i>Payment Pending</span><span><i class="dot chosen"></i>Selected</span></div>
 <div id="seats" class="seats"></div>
+<div id="seats" class="seats"></div>
+
 <p>Selected: <b id="selectedSeat">None</b></p>
+<input type="hidden" id="seat">
+
+<!-- yahan baaki booking fields -->
+
+<button id="bookingSubmit" class="btn" type="button">
+    Confirm Booking
+</button>
 <input type="hidden" id="seat">
 <div class="form">
 <input id="name" placeholder="Student name" required>
@@ -803,8 +839,8 @@ textarea {
   placeholder="Email (optional)"
 >
 <select id="plan"><option>Daily</option><option>Monthly</option><option>Quarterly</option></select>
-<button id="bookingSubmit" class="btn" type="button" onclick="createBooking(event)">
-  Confirm Booking
+<button id="bookingSubmit" class="btn" type="button">
+    Confirm Booking
 </button>
 </div>
 <p class="muted">🔒 🔒 A booked seat stays RED and locked for this SHIFT on every date. Only the admin can cancel it; other shifts remain independently available.</p>
@@ -865,64 +901,13 @@ textarea {
 <button class="btn close" onclick="modal.classList.remove('on')">Close</button>
 </div></div>
 <script>
-/* =========================================================
-   SAINIK LIBRARY - MAIN FRONTEND JAVASCRIPT
-   ========================================================= */
-
 const API_BASE = "https://sainik-library.onrender.com";
-
-
-/* =========================================================
-   BASIC HELPERS
-   ========================================================= */
-
-const $ = (id) => document.getElementById(id);
-
-
-async function apiFetch(url, options = {}) {
-
-  const finalUrl =
-    url.startsWith("http")
-      ? url
-      : API_BASE + url;
-
-  const response = await fetch(finalUrl, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {})
-    }
-  });
-
-  let data = null;
-
-  try {
-    data = await response.json();
-  } catch {
-    data = {};
-  }
-
-  if (!response.ok) {
-    throw new Error(
-      data.error ||
-      data.message ||
-      "Something went wrong"
-    );
-  }
-
-  return data;
-}
-
-
-/* =========================================================
-   GLOBAL VARIABLES
-   ========================================================= */
 
 let selectedSeat = null;
 
 let currentSeatsData = {
-  booked: [],
-  pending: []
+    booked: [],
+    pending: []
 };
 
 let totalSeats = 55;
@@ -932,1917 +917,1208 @@ let currentBookingAmount = 0;
 let currentUpiLink = "";
 
 
-/* =========================================================
-   LOAD CONFIG
-   ========================================================= */
+/* =========================
+   COMMON FUNCTION
+========================= */
 
-async function loadConfig() {
-
-  try {
-
-    const config =
-      await apiFetch("/api/config");
-
-    totalSeats =
-      Number(config.totalSeats) || 55;
-
-  } catch (error) {
-
-    console.error(
-      "Config loading error:",
-      error
-    );
-
-  }
+function $(id) {
+    return document.getElementById(id);
 }
 
 
-/* =========================================================
-   SHIFT
-   ========================================================= */
+/* =========================
+   SEAT LOADING
+========================= */
 
-function getSelectedShift() {
+async function loadSeats() {
 
-  const shiftElement = $("shift");
+    try {
 
-  if (!shiftElement) {
-    return "";
-  }
+        const shiftElement = $("shift");
 
-  return String(
-    shiftElement.value || ""
-  ).trim();
-}
+        if (!shiftElement) {
+            console.error("Shift element not found");
+            return;
+        }
 
+        const shift = shiftElement.value;
 
-/* =========================================================
-   SEATS
-   ========================================================= */
+        const response = await fetch(
+            `${API_BASE}/api/seats?shift=${encodeURIComponent(shift)}`
+        );
 
-async function seats() {
+        if (!response.ok) {
+            throw new Error("Unable to load seats");
+        }
 
-  const shift =
-    getSelectedShift();
+        const data = await response.json();
 
-  if (
-    ![
-      "Morning",
-      "Evening",
-      "Full Day"
-    ].includes(shift)
-  ) {
+        currentSeatsData = {
+            booked: Array.isArray(data.booked)
+                ? data.booked
+                : [],
 
-    renderSeats({
-      booked: [],
-      pending: []
-    });
+            pending: Array.isArray(data.pending)
+                ? data.pending
+                : []
+        };
 
-    return;
-  }
+        totalSeats = Number(data.totalSeats || 55);
 
-  try {
+        renderSeats();
 
-    /*
-      IMPORTANT:
+    } catch (error) {
 
-      Date is NOT sent.
+        console.error("Seat loading error:", error);
 
-      Seat availability is permanent
-      until admin cancellation.
-    */
+        const seatsBox = $("seats");
 
-    const data =
-      await apiFetch(
-        "/api/seats?shift=" +
-        encodeURIComponent(shift)
-      );
+        if (seatsBox) {
 
-    currentSeatsData = {
+            seatsBox.innerHTML =
+                `<p style="color:red;">
+                    Unable to load seats. Please refresh.
+                </p>`;
 
-      booked:
-        Array.isArray(data.booked)
-          ? data.booked.map(Number)
-          : [],
-
-      pending:
-        Array.isArray(data.pending)
-          ? data.pending.map(Number)
-          : []
-
-    };
-
-
-    /*
-      If selected seat became unavailable,
-      clear selection.
-    */
-
-    if (
-      selectedSeat &&
-      (
-        currentSeatsData.booked.includes(
-          Number(selectedSeat)
-        ) ||
-
-        currentSeatsData.pending.includes(
-          Number(selectedSeat)
-        )
-      )
-    ) {
-
-      selectedSeat = null;
-
-      const seatInput = $("seat");
-
-      if (seatInput) {
-        seatInput.value = "";
-      }
-
+        }
     }
+}
 
 
-    renderSeats(currentSeatsData);
+/* =========================
+   RENDER SEATS
+========================= */
 
-
-  } catch (error) {
-
-    console.error(
-      "Seat loading error:",
-      error
-    );
+function renderSeats() {
 
     const container = $("seats");
 
-    if (container) {
+    if (!container) {
 
-      container.innerHTML = `
-        <div class="seat-error">
-          Unable to load seats. Please try again.
-        </div>
-      `;
+        console.error("Seats container not found");
 
+        return;
     }
 
-  }
+    container.innerHTML = "";
+
+    const booked = currentSeatsData.booked || [];
+    const pending = currentSeatsData.pending || [];
+
+
+    for (let i = 1; i <= totalSeats; i++) {
+
+        const button = document.createElement("button");
+
+        button.type = "button";
+
+        button.textContent = "S" + i;
+
+        button.className = "seat";
+
+        button.dataset.seat = i;
+
+
+        /* BOOKED */
+
+        if (booked.includes(i)) {
+
+            button.classList.add("booked");
+
+            button.disabled = true;
+
+            button.title = "Booked";
+
+        }
+
+
+        /* PAYMENT PENDING */
+
+        else if (pending.includes(i)) {
+
+            button.classList.add("pending");
+
+            button.disabled = true;
+
+            button.title = "Payment Pending";
+
+        }
+
+
+        /* AVAILABLE */
+
+        else {
+
+            button.classList.add("available");
+
+            button.addEventListener(
+                "click",
+                function () {
+
+                    selectSeat(i);
+
+                }
+            );
+        }
+
+
+        /* SELECTED */
+
+        if (Number(selectedSeat) === i) {
+
+            button.classList.add("sel");
+
+        }
+
+
+        container.appendChild(button);
+    }
 }
 
 
-/* =========================================================
-   RENDER SEATS
-   ========================================================= */
+/* =========================
+   SELECT SEAT
+========================= */
 
-function renderSeats(data = {}) {
+function selectSeat(number) {
 
-  const container = $("seats");
+    const booked = currentSeatsData.booked || [];
 
-  if (!container) {
-    return;
-  }
+    const pending = currentSeatsData.pending || [];
 
-  const booked =
-    Array.isArray(data.booked)
-      ? data.booked.map(Number)
-      : [];
-
-  const pending =
-    Array.isArray(data.pending)
-      ? data.pending.map(Number)
-      : [];
-
-
-  container.innerHTML = "";
-
-
-  for (
-    let seatNumber = 1;
-    seatNumber <= totalSeats;
-    seatNumber++
-  ) {
-
-    const button =
-      document.createElement("button");
-
-    button.type = "button";
-
-    button.className = "seat";
-
-    button.dataset.seat =
-      String(seatNumber);
-
-    button.textContent =
-      "S" + seatNumber;
-
-
-    /* =========================
-       BOOKED = RED
-       ========================= */
 
     if (
-      booked.includes(seatNumber)
+        booked.includes(number) ||
+        pending.includes(number)
     ) {
 
-      button.classList.add("booked");
-
-      button.disabled = true;
-
-      button.title = "Booked";
+        return;
 
     }
 
 
-    /* =========================
-       PENDING = ORANGE
-       ========================= */
+    selectedSeat = Number(number);
 
-    else if (
-      pending.includes(seatNumber)
-    ) {
 
-      button.classList.add("pending");
+    const seatInput = $("seat");
 
-      button.disabled = true;
+    if (seatInput) {
 
-      button.title =
-        "Payment pending";
+        seatInput.value = String(number);
 
     }
 
 
-    /* =========================
-       SELECTED = GOLD
-       ========================= */
+    const selectedText = $("selectedSeat");
 
-    else if (
-      Number(selectedSeat) ===
-      seatNumber
-    ) {
+    if (selectedText) {
 
-      button.classList.add("sel");
-
-      button.title = "Selected";
-
-
-      button.addEventListener(
-        "click",
-        () => {
-          selectSeat(seatNumber);
-        }
-      );
+        selectedText.textContent = "S" + number;
 
     }
 
 
-    /* =========================
-       FREE = GREEN
-       ========================= */
-
-    else {
-
-      button.classList.add("free");
-
-      button.title = "Available";
-
-      button.addEventListener(
-        "click",
-        () => {
-          selectSeat(seatNumber);
-        }
-      );
-
-    }
+    renderSeats();
 
 
-    container.appendChild(button);
-  }
+    console.log(
+        "Selected seat:",
+        selectedSeat
+    );
 }
 
 
-/* =========================================================
-   SELECT SEAT
-   ========================================================= */
-
-function selectSeat(seatNumber) {
-
-  const shift =
-    getSelectedShift();
-
-
-  /*
-    Shift validation
-  */
-
-  if (
-    ![
-      "Morning",
-      "Evening",
-      "Full Day"
-    ].includes(shift)
-  ) {
-
-    alert(
-      "Please select a shift first."
-    );
-
-    return;
-  }
-
-
-  const number =
-    Number(seatNumber);
-
-
-  /*
-    Check booked
-  */
-
-  if (
-    currentSeatsData.booked.includes(number)
-  ) {
-
-    alert(
-      "This seat is already booked."
-    );
-
-    return;
-  }
-
-
-  /*
-    Check pending
-  */
-
-  if (
-    currentSeatsData.pending.includes(number)
-  ) {
-
-    alert(
-      "This seat is currently pending."
-    );
-
-    return;
-  }
-
-
-  /*
-    IMPORTANT
-
-    Save selected seat globally.
-  */
-
-  selectedSeat = number;
-
-
-  /*
-    IMPORTANT
-
-    Save seat in hidden input too.
-  */
-
-  const seatInput = $("seat");
-
-  if (seatInput) {
-    seatInput.value =
-      String(number);
-  }
-
-
-  /*
-    Update selected text
-  */
-
-  const selectedSeatText =
-    $("selectedSeat");
-
-  if (selectedSeatText) {
-
-    selectedSeatText.textContent =
-      "S" + number;
-
-  }
-
-
-  /*
-    Re-render seats
-    so selected seat becomes GOLD.
-  */
-
-  renderSeats(
-    currentSeatsData
-  );
-
-
-  console.log(
-    "Selected Seat:",
-    selectedSeat
-  );
-
-  console.log(
-    "Seat Input:",
-    seatInput
-      ? seatInput.value
-      : "not found"
-  );
-}
-
-
-/* =========================================================
+/* =========================
    SHIFT CHANGE
-   ========================================================= */
+========================= */
 
-const shiftElement =
-  $("shift");
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
 
-if (shiftElement) {
+        const shiftElement = $("shift");
 
-  shiftElement.addEventListener(
-    "change",
-    async () => {
+        if (shiftElement) {
 
-      /*
-        Clear old seat.
-      */
+            shiftElement.addEventListener(
+                "change",
+                function () {
 
-      selectedSeat = null;
-
-
-      const seatInput =
-        $("seat");
-
-      if (seatInput) {
-        seatInput.value = "";
-      }
+                    selectedSeat = null;
 
 
-      const selectedSeatText =
-        $("selectedSeat");
+                    const seatInput = $("seat");
 
-      if (selectedSeatText) {
+                    if (seatInput) {
 
-        selectedSeatText.textContent =
-          "None";
+                        seatInput.value = "";
 
-      }
+                    }
 
 
-      await seats();
+                    const selectedText =
+                        $("selectedSeat");
 
-    }
-  );
-}
+                    if (selectedText) {
+
+                        selectedText.textContent =
+                            "None";
+
+                    }
 
 
-/* =========================================================
-   DATE CHANGE
-   ========================================================= */
+                    loadSeats();
 
-const dateElement =
-  $("date");
-
-if (dateElement) {
-
-  dateElement.addEventListener(
-    "change",
-    async () => {
-
-      /*
-        Date does NOT change
-        permanent seat availability.
-      */
-
-      await seats();
+                }
+            );
+        }
 
     }
-  );
+);
+
+
+/* =========================
+   GET FORM VALUE
+========================= */
+
+function getValue(id) {
+
+    const element = $(id);
+
+    if (!element) {
+
+        return "";
+
+    }
+
+    return element.value.trim();
 }
 
 
-/* =========================================================
-   PLAN AMOUNT
-   ========================================================= */
-
-function getPlanAmount(plan) {
-
-  const amounts = {
-
-    Daily: 50,
-
-    Monthly: 500,
-
-    Quarterly: 1500
-
-  };
-
-  return (
-    amounts[plan] || 500
-  );
-}
-
-
-/* =========================================================
-   FORM VALUE
-   ========================================================= */
-
-function getFormValue(id) {
-
-  const element = $(id);
-
-  return element
-    ? String(
-        element.value || ""
-      ).trim()
-    : "";
-}
-
-
-/* =========================================================
+/* =========================
    CREATE BOOKING
-   ========================================================= */
+========================= */
 
 async function createBooking(event) {
 
-  if (event) {
-    event.preventDefault();
-  }
+    if (event) {
 
+        event.preventDefault();
 
-  /* =========================
-     FORM VALUES
-     ========================= */
-
-  const name =
-    getFormValue("name");
-
-  const fatherName =
-    getFormValue("fatherName") ||
-    getFormValue("father_name");
-
-  const mobile =
-    getFormValue("mobile");
-
-  const email =
-    getFormValue("email");
-
-  const address =
-    getFormValue("address");
-
-  const date =
-    getFormValue("date");
-
-  const shift =
-    getFormValue("shift");
-
-
-  const planElement =
-    $("plan");
-
-  const plan =
-    planElement
-      ? planElement.value
-      : "Daily";
-
-
-  /* =========================
-     IMPORTANT SEAT FIX
-     ========================= */
-
-  const seatInput =
-    $("seat");
-
-
-  let seat =
-    Number(selectedSeat);
-
-
-  /*
-    If selectedSeat is missing,
-    try hidden input.
-  */
-
-  if (
-    !Number.isInteger(seat) ||
-    seat < 1
-  ) {
-
-    seat =
-      Number(
-        seatInput?.value || 0
-      );
-
-  }
-
-
-  console.log(
-    "FINAL BOOKING SEAT:",
-    seat
-  );
-
-
-  /* =========================
-     VALIDATION
-     ========================= */
-
-  if (!name) {
-
-    alert(
-      "Please enter your name."
-    );
-
-    return;
-  }
-
-
-  if (!fatherName) {
-
-    alert(
-      "Please enter father's name."
-    );
-
-    return;
-  }
-
-
-  if (
-    !/^[0-9]{10}$/.test(mobile)
-  ) {
-
-    alert(
-      "Please enter a valid 10-digit mobile number."
-    );
-
-    return;
-  }
-
-
-  if (!address) {
-
-    alert(
-      "Please enter your address."
-    );
-
-    return;
-  }
-
-
-  if (!date) {
-
-    alert(
-      "Please select a date."
-    );
-
-    return;
-  }
-
-
-  if (
-    ![
-      "Morning",
-      "Evening",
-      "Full Day"
-    ].includes(shift)
-  ) {
-
-    alert(
-      "Please select a valid shift."
-    );
-
-    return;
-  }
-
-
-  if (
-    !Number.isInteger(seat) ||
-    seat < 1 ||
-    seat > totalSeats
-  ) {
-
-    alert(
-      "Please select a seat first."
-    );
-
-    return;
-  }
-
-
-  /* =========================
-     LOCAL SEAT CHECK
-     ========================= */
-
-  if (
-    currentSeatsData.booked.includes(seat)
-  ) {
-
-    alert(
-      "This seat is already booked."
-    );
-
-    await seats();
-
-    return;
-  }
-
-
-  if (
-    currentSeatsData.pending.includes(seat)
-  ) {
-
-    alert(
-      "This seat is currently pending."
-    );
-
-    await seats();
-
-    return;
-  }
-
-
-  /* =========================
-     BUTTON
-     ========================= */
-
-  const submitButton =
-    $("bookingSubmit") ||
-    document.querySelector(
-      'button[onclick*="createBooking"]'
-    );
-
-
-  if (submitButton) {
-
-    submitButton.disabled = true;
-
-    submitButton.dataset.oldText =
-      submitButton.textContent;
-
-    submitButton.textContent =
-      "Booking...";
-
-  }
-
-
-  /* =========================
-     BOOKING DATA
-     ========================= */
-
-  const bookingData = {
-
-    name,
-
-    fatherName,
-
-    mobile,
-
-    email,
-
-    address,
-
-    seat: seat,
-
-    date,
-
-    shift,
-
-    plan
-
-  };
-
-
-  console.log(
-    "BOOKING DATA SENT TO SERVER:",
-    bookingData
-  );
-
-
-  try {
-
-    const result =
-      await apiFetch(
-        "/api/bookings",
-        {
-          method: "POST",
-
-          body:
-            JSON.stringify(
-              bookingData
-            )
-        }
-      );
-
-
-    /*
-      Booking created.
-    */
-
-    selectedSeat =
-      seat;
-
-
-    currentBookingId =
-      result.id;
-
-
-    currentBookingAmount =
-      Number(result.amount) ||
-      getPlanAmount(plan);
-
-
-    /*
-      New booking is payment pending,
-      therefore orange.
-    */
-
-    if (
-      !currentSeatsData.pending.includes(
-        seat
-      )
-    ) {
-
-      currentSeatsData.pending.push(
-        seat
-      );
+        event.stopPropagation();
 
     }
 
 
-    renderSeats(
-      currentSeatsData
+    console.log(
+        "CONFIRM BOOKING CLICKED"
     );
 
-
-    /*
-      Show payment.
-    */
-
-    showPaymentSection(
-      result
-    );
-
-
-    /*
-      Generate QR.
-    */
-
-    await loadPaymentQR(
-      result.id,
-      currentBookingAmount
-    );
-
-
-    /*
-      WhatsApp link.
-    */
-
-    setupWhatsAppLink();
-
-
-    alert(
-      "Booking created successfully. Please complete the payment."
-    );
-
-
-  } catch (error) {
-
-    console.error(
-      "Booking error:",
-      error
-    );
-
-
-    alert(
-      error.message ||
-      "Booking failed. Please try again."
-    );
-
-
-    await seats();
-
-  } finally {
-
-    if (submitButton) {
-
-      submitButton.disabled =
-        false;
-
-      submitButton.textContent =
-        submitButton.dataset.oldText ||
-        "Confirm Booking";
-
-    }
-
-  }
-}
-
-
-/* =========================================================
-   PAYMENT SECTION
-   ========================================================= */
-
-function showPaymentSection(booking) {
-
-  const modal =
-    $("modal");
-
-  /*
-    Your current HTML uses #modal
-    for payment.
-  */
-
-  if (modal) {
-    modal.classList.add("on");
-  }
-
-
-  const receipt =
-    $("receipt");
-
-
-  if (
-    receipt &&
-    booking
-  ) {
 
     const name =
-      getFormValue("name");
+        getValue("name");
+
+    const fatherName =
+        getValue("fatherName");
 
     const mobile =
-      getFormValue("mobile");
+        getValue("mobile");
+
+    const email =
+        getValue("email");
+
+    const address =
+        getValue("address");
 
     const date =
-      getFormValue("date");
+        getValue("date");
 
     const shift =
-      getFormValue("shift");
+        getValue("shift");
 
     const plan =
-      getFormValue("plan") ||
-      "Daily";
+        getValue("plan");
 
 
-    receipt.innerHTML = `
-      <b>Booking ID:</b> ${escapeHtml(booking.id || "")}<br>
-      <b>Name:</b> ${escapeHtml(name)}<br>
-      <b>Mobile:</b> ${escapeHtml(mobile)}<br>
-      <b>Seat:</b> S${Number(selectedSeat)}<br>
-      <b>Date:</b> ${escapeHtml(date)}<br>
-      <b>Shift:</b> ${escapeHtml(shift)}<br>
-      <b>Plan:</b> ${escapeHtml(plan)}
-    `;
+    const seatInput =
+        getValue("seat");
 
-  }
 
+    const seat =
+        Number(
+            selectedSeat ||
+            seatInput
+        );
 
-  const payAmount =
-    $("payAmount");
 
-
-  if (payAmount) {
-
-    payAmount.textContent =
-      Number(
-        booking.amount ||
-        currentBookingAmount ||
-        0
-      );
-
-  }
-
-}
-
-
-/* =========================================================
-   PAYMENT QR
-   ========================================================= */
-
-async function loadPaymentQR(
-  bookingId,
-  amount
-) {
-
-  try {
-
-    const data =
-      await apiFetch(
-        "/api/payment/qr?amount=" +
-        encodeURIComponent(amount) +
-        "&bookingId=" +
-        encodeURIComponent(bookingId)
-      );
-
-
-    currentUpiLink =
-      data.upiLink || "";
-
-
-    /*
-      Your HTML uses paymentQr.
-    */
-
-    const qrImage =
-      $("paymentQr") ||
-      $("paymentQR") ||
-      $("qrImage");
-
-
-    if (
-      qrImage &&
-      data.qrDataUrl
-    ) {
-
-      qrImage.src =
-        data.qrDataUrl;
-
-      qrImage.style.display =
-        "block";
-
-    }
-
-
-    /*
-      UPI text
-    */
-
-    const upiText =
-      $("upiText");
-
-
-    if (
-      upiText &&
-      data.upiLink
-    ) {
-
-      upiText.textContent =
-        data.upiLink;
-
-    }
-
-
-    /*
-      Also store current link.
-    */
-
-    window.currentUpiLink =
-      currentUpiLink;
-
-
-  } catch (error) {
-
-    console.error(
-      "Payment QR error:",
-      error
-    );
-
-  }
-}
-
-
-/* =========================================================
-   OPEN UPI
-   ========================================================= */
-
-function openUpi(app = "") {
-
-  const upiLink =
-    currentUpiLink ||
-    window.currentUpiLink;
-
-
-  if (!upiLink) {
-
-    alert(
-      "Payment link is not available yet."
-    );
-
-    return;
-  }
-
-
-  let appLink =
-    upiLink;
-
-
-  if (
-    app.toLowerCase() ===
-    "phonepe"
-  ) {
-
-    appLink =
-      upiLink.replace(
-        /^upi:\/\//i,
-        "phonepe://"
-      );
-
-  }
-
-
-  else if (
-    app.toLowerCase() ===
-    "gpay"
-  ) {
-
-    appLink =
-      upiLink.replace(
-        /^upi:\/\//i,
-        "tez://"
-      );
-
-  }
-
-
-  window.location.href =
-    appLink;
-}
-
-
-/* =========================================================
-   COPY UPI
-   ========================================================= */
-
-async function copyUpi() {
-
-  const upiText =
-    $("upiText");
-
-
-  const value =
-    upiText
-      ? upiText.textContent
-      : currentUpiLink;
-
-
-  if (!value) {
-
-    alert(
-      "UPI ID is not available."
-    );
-
-    return;
-  }
-
-
-  try {
-
-    await navigator.clipboard.writeText(
-      value
-    );
-
-    alert(
-      "UPI link copied successfully."
-    );
-
-  } catch {
-
-    alert(
-      "Copy failed. Please copy manually."
-    );
-
-  }
-}
-
-
-/* =========================================================
-   PAYMENT CLAIM
-   ========================================================= */
-
-async function markPaid() {
-
-  const bookingId =
-    currentBookingId ||
-    window.currentBookingId;
-
-
-  if (!bookingId) {
-
-    alert(
-      "Booking ID not found."
-    );
-
-    return;
-  }
-
-
-  try {
-
-    const result =
-      await apiFetch(
-        "/api/payment/claim",
+    console.log(
+        "Booking data:",
         {
-          method: "POST",
-
-          body:
-            JSON.stringify({
-              bookingId
-            })
+            name,
+            fatherName,
+            mobile,
+            email,
+            address,
+            seat,
+            date,
+            shift,
+            plan
         }
-      );
+    );
 
 
-    const status =
-      $("paymentStatus");
+    /* =========================
+       VALIDATION
+    ========================= */
+
+    if (!name) {
+
+        alert(
+            "Please enter your name."
+        );
+
+        return;
+    }
 
 
-    if (status) {
+    if (!fatherName) {
 
-      status.textContent =
-        result.status === "submitted"
-          ? "Payment submitted successfully. Admin will verify it."
-          : "Payment status updated.";
+        alert(
+            "Please enter father's name."
+        );
+
+        return;
+    }
+
+
+    if (!mobile) {
+
+        alert(
+            "Please enter mobile number."
+        );
+
+        return;
+    }
+
+
+    if (!address) {
+
+        alert(
+            "Please enter your address."
+        );
+
+        return;
+    }
+
+
+    if (!date) {
+
+        alert(
+            "Please select booking date."
+        );
+
+        return;
+    }
+
+
+    if (!shift) {
+
+        alert(
+            "Please select shift."
+        );
+
+        return;
+    }
+
+
+    if (
+        !seat ||
+        seat < 1 ||
+        seat > totalSeats
+    ) {
+
+        alert(
+            "Please select a seat."
+        );
+
+        return;
+    }
+
+
+    /* =========================
+       BUTTON LOADING
+    ========================= */
+
+    const button =
+        $("bookingSubmit");
+
+
+    if (button) {
+
+        button.disabled = true;
+
+        button.textContent =
+            "Booking...";
 
     }
 
 
-    await seats();
+    try {
+
+        const response =
+            await fetch(
+                `${API_BASE}/api/bookings`,
+                {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+
+                        name,
+
+                        fatherName,
+
+                        mobile,
+
+                        email,
+
+                        address,
+
+                        seat,
+
+                        date,
+
+                        shift,
+
+                        plan
+
+                    })
+
+                }
+            );
 
 
-  } catch (error) {
+        const data =
+            await response
+                .json()
+                .catch(
+                    () => ({})
+                );
 
-    alert(
-      error.message ||
-      "Unable to submit payment."
-    );
 
-  }
+        console.log(
+            "Booking response:",
+            data
+        );
+
+
+        /* =========================
+           SEAT CONFLICT
+        ========================= */
+
+        if (!response.ok) {
+
+            if (response.status === 409) {
+
+                alert(
+                    data.message ||
+                    "This seat is already booked for the selected shift."
+                );
+
+
+                selectedSeat = null;
+
+
+                const seatInput =
+                    $("seat");
+
+                if (seatInput) {
+
+                    seatInput.value = "";
+
+                }
+
+
+                const selectedText =
+                    $("selectedSeat");
+
+                if (selectedText) {
+
+                    selectedText.textContent =
+                        "None";
+
+                }
+
+
+                await loadSeats();
+
+                return;
+            }
+
+
+            throw new Error(
+                data.message ||
+                "Booking failed."
+            );
+        }
+
+
+        /* =========================
+           BOOKING SUCCESS
+        ========================= */
+
+        currentBookingId =
+            data.bookingId ||
+            data.id ||
+            data.booking?.id ||
+            data.booking?.bookingId;
+
+
+        currentBookingAmount =
+            Number(
+                data.amount ||
+                data.booking?.amount ||
+                0
+            );
+
+
+        alert(
+            "Booking created successfully! Now complete the payment."
+        );
+
+
+        /* =========================
+           SHOW PAYMENT
+        ========================= */
+
+        if (
+            typeof showPaymentSection ===
+            "function"
+        ) {
+
+            showPaymentSection(data);
+
+        }
+
+        else if ($("modal")) {
+
+            $("modal").style.display =
+                "flex";
+
+        }
+
+
+        /* =========================
+           RESET SELECTION
+        ========================= */
+
+        selectedSeat = null;
+
+
+        const seatInput =
+            $("seat");
+
+        if (seatInput) {
+
+            seatInput.value = "";
+
+        }
+
+
+        const selectedText =
+            $("selectedSeat");
+
+        if (selectedText) {
+
+            selectedText.textContent =
+                "None";
+
+        }
+
+
+        await loadSeats();
+
+
+    } catch (error) {
+
+        console.error(
+            "BOOKING ERROR:",
+            error
+        );
+
+
+        alert(
+            error.message ||
+            "Booking failed. Please try again."
+        );
+
+
+    } finally {
+
+        if (button) {
+
+            button.disabled = false;
+
+            button.textContent =
+                "Confirm Booking";
+
+        }
+    }
 }
 
-
-/* =========================================================
-   WHATSAPP
-   ========================================================= */
-
-function setupWhatsAppLink() {
-
-  const wa =
-    $("wa");
-
-
-  if (!wa) {
-    return;
-  }
-
-
-  const bookingId =
-    currentBookingId || "";
-
-
-  const name =
-    getFormValue("name");
-
-  const mobile =
-    getFormValue("mobile");
-
-  const date =
-    getFormValue("date");
-
-  const shift =
-    getFormValue("shift");
-
-  const plan =
-    getFormValue("plan") ||
-    "Daily";
-
-
-  const seat =
-    Number(selectedSeat);
-
-
-  const amount =
-    currentBookingAmount ||
-    getPlanAmount(plan);
-
-
-  const text =
-`Sainik Library Booking
-
-Booking ID: ${bookingId}
-Name: ${name}
-Mobile: ${mobile}
-Seat: S${seat}
-Date: ${date}
-Shift: ${shift}
-Plan: ${plan}
-Amount: ₹${amount}
-
-I have completed the payment. Please verify my payment.`;
-
-
-  const whatsappNumber =
-    "918765196654";
-
-
-  wa.href =
-    "https://wa.me/" +
-    whatsappNumber +
-    "?text=" +
-    encodeURIComponent(text);
-
-}
-
-
-function sendPaymentReceiptWhatsApp() {
-
-  setupWhatsAppLink();
-
-  const wa =
-    $("wa");
-
-  if (wa) {
-    window.open(
-      wa.href,
-      "_blank"
-    );
-  }
-}
-
-
-/* =========================================================
-   RESET BOOKING
-   ========================================================= */
-
-function resetBookingForm() {
-
-  selectedSeat = null;
-
-  currentBookingId = null;
-
-  currentBookingAmount = 0;
-
-  currentUpiLink = "";
-
-
-  window.currentBookingId = null;
-
-  window.currentBookingAmount = null;
-
-  window.currentUpiLink = "";
-
-
-  const seatInput =
-    $("seat");
-
-  if (seatInput) {
-    seatInput.value = "";
-  }
-
-
-  const selectedSeatText =
-    $("selectedSeat");
-
-  if (selectedSeatText) {
-
-    selectedSeatText.textContent =
-      "None";
-
-  }
-
-
-  const modal =
-    $("modal");
-
-  if (modal) {
-    modal.classList.remove("on");
-  }
-
-
-  seats();
-
-}
 
 
 /* =========================================================
    SUCCESS STUDENTS
-   ========================================================= */
+========================================================= */
+
+let successStudents = [];
+
+let successCurrentIndex = 0;
+
+let successTimer = null;
+
+
+/* =========================
+   LOAD SUCCESS STUDENTS
+========================= */
 
 async function loadSuccessStudents() {
 
-  try {
-
-    const data =
-      await apiFetch(
-        "/api/success-students"
-      );
-
-
-    /*
-      Backend normally returns array.
-
-      But this also supports:
-      { students: [...] }
-      { successStudents: [...] }
-    */
-
-    let students = [];
-
-
-    if (Array.isArray(data)) {
-
-      students = data;
-
-    }
-
-    else if (
-      data &&
-      Array.isArray(data.students)
-    ) {
-
-      students =
-        data.students;
-
-    }
-
-    else if (
-      data &&
-      Array.isArray(
-        data.successStudents
-      )
-    ) {
-
-      students =
-        data.successStudents;
-
-    }
-
-
-    renderSuccessStudents(
-      students
-    );
-
-
-  } catch (error) {
-
-    console.error(
-      "Success students loading error:",
-      error
-    );
-
-
-    const track =
-      $("successTrack");
-
-
-    if (track) {
-
-      track.innerHTML = `
-        <div class="success-slide">
-          <div class="success-card">
-            <div>
-              <h3>Unable to load success students</h3>
-              <p>Please refresh the page.</p>
-            </div>
-          </div>
-        </div>
-      `;
-
-    }
-
-  }
-}
-
-
-/* =========================================================
-   RENDER SUCCESS STUDENTS
-   ========================================================= */
-
-function renderSuccessStudents(
-  students = []
-) {
-
-  const track =
-    $("successTrack");
-
-  const dots =
-    $("successDots");
-
-
-  if (!track) {
-
-    console.error(
-      "successTrack element not found."
-    );
-
-    return;
-  }
-
-
-  track.innerHTML = "";
-
-
-  if (dots) {
-    dots.innerHTML = "";
-  }
-
-
-  if (
-    !Array.isArray(students) ||
-    students.length === 0
-  ) {
-
-    track.innerHTML = `
-      <div class="success-slide">
-
-        <div class="success-card">
-
-          <div>
-            <h3>No success students yet</h3>
-
-            <p class="muted">
-              Success Students will be displayed here.
-            </p>
-          </div>
-
-        </div>
-
-      </div>
-    `;
-
-    return;
-  }
-
-
-  /*
-    Create every student slide.
-  */
-
-  students.forEach(
-    (student, index) => {
-
-      const slide =
-        document.createElement(
-          "div"
-        );
-
-
-      slide.className =
-        "success-slide";
-
-
-      const photo =
-        student.photo
-          ? `
-            <img
-              src="${escapeHtml(student.photo)}"
-              alt="${escapeHtml(student.name || "Student")}"
-            >
-          `
-          : `
-            <div
-              style="
-                width:180px;
-                height:210px;
-                display:flex;
-                align-items:center;
-                justify-content:center;
-                background:#e2e8f0;
-                border-radius:16px;
-                font-size:50px;
-              "
-            >
-              👨‍🎓
-            </div>
-          `;
-
-
-      slide.innerHTML = `
-
-        <div class="success-card">
-
-          ${photo}
-
-          <div>
-
-            <span class="success-badge">
-              🏆 Successful Student
-            </span>
-
-            <h3>
-              ${escapeHtml(
-                student.name || ""
-              )}
-            </h3>
-
-
-            ${
-              student.bio
-                ? `
-                  <p class="muted">
-                    ${escapeHtml(
-                      student.bio
-                    )}
-                  </p>
-                `
-                : ""
-            }
-
-
-            <div class="success-meta">
-
-              ${
-                student.selected_for
-                  ? `
-                    <div>
-                      <b>Selected For</b><br>
-                      ${escapeHtml(
-                        student.selected_for
-                      )}
-                    </div>
-                  `
-                  : ""
-              }
-
-
-              ${
-                student.selected_place
-                  ? `
-                    <div>
-                      <b>Place</b><br>
-                      ${escapeHtml(
-                        student.selected_place
-                      )}
-                    </div>
-                  `
-                  : ""
-              }
-
-
-              ${
-                student.library_from ||
-                student.library_to
-                  ? `
-                    <div>
-                      <b>Library Stay</b><br>
-
-                      ${escapeHtml(
-                        student.library_from || ""
-                      )}
-
-                      ${
-                        student.library_to
-                          ? " - " +
-                            escapeHtml(
-                              student.library_to
-                            )
-                          : ""
-                      }
-
-                    </div>
-                  `
-                  : ""
-              }
-
-            </div>
-
-          </div>
-
-        </div>
-      `;
-
-
-      track.appendChild(
-        slide
-      );
-
-
-      /*
-        Create dot.
-      */
-
-      if (dots) {
-
-        const dot =
-          document.createElement(
-            "button"
-          );
-
-        dot.type = "button";
-
-        dot.className =
-          "success-dot" +
-          (
-            index === 0
-              ? " active"
-              : ""
-          );
-
-
-        dot.addEventListener(
-          "click",
-          () => {
-
-            showSuccessStudent(
-              index
+    try {
+
+        const response =
+            await fetch(
+                `${API_BASE}/api/success-students`
             );
 
-          }
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Success students API failed"
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        console.log(
+            "Success students:",
+            data
         );
 
 
-        dots.appendChild(
-          dot
+        if (Array.isArray(data)) {
+
+            successStudents = data;
+
+        }
+
+        else if (
+            Array.isArray(
+                data.students
+            )
+        ) {
+
+            successStudents =
+                data.students;
+
+        }
+
+        else if (
+            Array.isArray(
+                data.successStudents
+            )
+        ) {
+
+            successStudents =
+                data.successStudents;
+
+        }
+
+        else {
+
+            successStudents = [];
+
+        }
+
+
+        renderSuccessStudents();
+
+
+    } catch (error) {
+
+        console.error(
+            "Success Students Error:",
+            error
         );
 
-      }
+
+        successStudents = [];
+
+        renderSuccessStudents();
 
     }
-  );
-
-
-  /*
-    Start first slide.
-  */
-
-  showSuccessStudent(0);
-
-
-  /*
-    Auto slide.
-  */
-
-  if (
-    students.length > 1
-  ) {
-
-    clearInterval(
-      window.successSliderTimer
-    );
-
-
-    let currentIndex = 0;
-
-
-    window.successSliderTimer =
-      setInterval(
-        () => {
-
-          currentIndex++;
-
-          if (
-            currentIndex >=
-            students.length
-          ) {
-            currentIndex = 0;
-          }
-
-
-          showSuccessStudent(
-            currentIndex
-          );
-
-        },
-        4000
-      );
-
-  }
-
 }
 
 
-/* =========================================================
-   SHOW SUCCESS STUDENT
-   ========================================================= */
+/* =========================
+   RENDER SUCCESS STUDENTS
+========================= */
 
-function showSuccessStudent(
-  index
-) {
+function renderSuccessStudents() {
 
-  const track =
-    $("successTrack");
+    const track =
+        $("successTrack");
 
-  const dots =
-    document.querySelectorAll(
-      ".success-dot"
+    const dots =
+        $("successDots");
+
+
+    if (!track) {
+
+        console.error(
+            "successTrack not found"
+        );
+
+        return;
+    }
+
+
+    if (!dots) {
+
+        console.error(
+            "successDots not found"
+        );
+
+        return;
+    }
+
+
+    track.innerHTML = "";
+
+    dots.innerHTML = "";
+
+
+    /* =========================
+       NO DATA
+    ========================= */
+
+    if (!successStudents.length) {
+
+        track.innerHTML = `
+
+            <div class="success-empty">
+
+                <h3>
+                    Our Successful Students
+                </h3>
+
+                <p>
+                    Success stories will appear here soon.
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+
+    /* =========================
+       CREATE SLIDES
+    ========================= */
+
+    successStudents.forEach(
+        (student, index) => {
+
+            const slide =
+                document.createElement("div");
+
+
+            slide.className =
+                "success-slide";
+
+
+            const photo =
+                student.photo ||
+                student.photoUrl ||
+                student.image ||
+                student.imageUrl ||
+                "";
+
+
+            slide.innerHTML = `
+
+                <div class="success-card">
+
+                    ${
+                        photo
+
+                        ?
+
+                        `
+                        <div class="success-photo">
+
+                            <img
+                                src="${escapeHtml(photo)}"
+                                alt="${escapeHtml(
+                                    student.name ||
+                                    "Successful Student"
+                                )}"
+                                onerror="this.style.display='none'"
+                            >
+
+                        </div>
+                        `
+
+                        :
+
+                        `
+                        <div class="success-photo success-no-photo">
+                            👨‍🎓
+                        </div>
+                        `
+                    }
+
+
+                    <div class="success-info">
+
+                        <h3>
+                            ${escapeHtml(
+                                student.name ||
+                                "Successful Student"
+                            )}
+                        </h3>
+
+
+                        ${
+                            student.selection ||
+                            student.selected ||
+                            student.exam
+
+                            ?
+
+                            `
+                            <p class="success-selection">
+
+                                🏆
+
+                                ${escapeHtml(
+                                    student.selection ||
+                                    student.selected ||
+                                    student.exam
+                                )}
+
+                            </p>
+                            `
+
+                            :
+
+                            ""
+                        }
+
+
+                        ${
+                            student.bio
+
+                            ?
+
+                            `
+                            <p>
+                                ${escapeHtml(
+                                    student.bio
+                                )}
+                            </p>
+                            `
+
+                            :
+
+                            ""
+                        }
+
+
+                        ${
+                            student.stayPeriod ||
+                            student.period
+
+                            ?
+
+                            `
+                            <p>
+
+                                📚 Library:
+
+                                ${escapeHtml(
+                                    student.stayPeriod ||
+                                    student.period
+                                )}
+
+                            </p>
+                            `
+
+                            :
+
+                            ""
+                        }
+
+                    </div>
+
+                </div>
+
+            `;
+
+
+            track.appendChild(slide);
+
+
+            /* =========================
+               DOT
+            ========================= */
+
+            const dot =
+                document.createElement(
+                    "button"
+                );
+
+
+            dot.type = "button";
+
+
+            dot.className =
+                index === 0
+                ? "success-dot active"
+                : "success-dot";
+
+
+            dot.addEventListener(
+                "click",
+                function () {
+
+                    showSuccessStudent(
+                        index
+                    );
+
+                }
+            );
+
+
+            dots.appendChild(dot);
+
+        }
     );
 
 
-  if (!track) {
-    return;
-  }
+    successCurrentIndex = 0;
 
 
-  track.style.transform =
-    `translateX(-${index * 100}%)`;
+    showSuccessStudent(0);
 
 
-  dots.forEach(
-    (dot, dotIndex) => {
-
-      dot.classList.toggle(
-        "active",
-        dotIndex === index
-      );
-
-    }
-  );
-
+    startSuccessSlider();
 }
 
 
-/* =========================================================
-   HTML ESCAPE
-   ========================================================= */
+/* =========================
+   SHOW SUCCESS SLIDE
+========================= */
+
+function showSuccessStudent(index) {
+
+    const track =
+        $("successTrack");
+
+
+    if (
+        !track ||
+        !successStudents.length
+    ) {
+
+        return;
+
+    }
+
+
+    if (index < 0) {
+
+        index =
+            successStudents.length - 1;
+
+    }
+
+
+    if (
+        index >=
+        successStudents.length
+    ) {
+
+        index = 0;
+
+    }
+
+
+    successCurrentIndex =
+        index;
+
+
+    track.style.transform =
+        `translateX(-${index * 100}%)`;
+
+
+    document
+        .querySelectorAll(
+            ".success-dot"
+        )
+        .forEach(
+            (dot, i) => {
+
+                dot.classList.toggle(
+                    "active",
+                    i === index
+                );
+
+            }
+        );
+}
+
+
+/* =========================
+   AUTO SLIDER
+========================= */
+
+function startSuccessSlider() {
+
+    if (successTimer) {
+
+        clearInterval(
+            successTimer
+        );
+
+    }
+
+
+    if (
+        successStudents.length <= 1
+    ) {
+
+        return;
+
+    }
+
+
+    successTimer =
+        setInterval(
+            function () {
+
+                showSuccessStudent(
+                    successCurrentIndex + 1
+                );
+
+            },
+            4000
+        );
+}
+
+
+/* =========================
+   ESCAPE HTML
+========================= */
 
 function escapeHtml(value) {
 
-  return String(
-    value ?? ""
-  )
-
-    .replace(
-      /&/g,
-      "&amp;"
+    return String(
+        value ?? ""
     )
 
-    .replace(
-      /</g,
-      "&lt;"
-    )
+        .replace(
+            /&/g,
+            "&amp;"
+        )
 
-    .replace(
-      />/g,
-      "&gt;"
-    )
+        .replace(
+            /</g,
+            "&lt;"
+        )
 
-    .replace(
-      /"/g,
-      "&quot;"
-    )
+        .replace(
+            />/g,
+            "&gt;"
+        )
 
-    .replace(
-      /'/g,
-      "&#039;"
-    );
+        .replace(
+            /"/g,
+            "&quot;"
+        )
 
+        .replace(
+            /'/g,
+            "&#039;"
+        );
 }
 
 
-/* =========================================================
-   SMOOTH SCROLL
-   ========================================================= */
-
-function scrollToSection(id) {
-
-  const element =
-    $(id);
-
-  if (!element) {
-    return;
-  }
-
-  element.scrollIntoView({
-    behavior: "smooth",
-    block: "start"
-  });
-
-}
-
 
 /* =========================================================
-   INITIALIZATION
-   ========================================================= */
+   VERY IMPORTANT
+   BUTTON EVENT
+========================================================= */
 
 document.addEventListener(
-  "DOMContentLoaded",
-  async () => {
+    "DOMContentLoaded",
+    function () {
 
-    await loadConfig();
+        const bookingButton =
+            $("bookingSubmit");
 
-    await seats();
 
-    await loadSuccessStudents();
+        if (bookingButton) {
 
-  }
+            bookingButton.addEventListener(
+                "click",
+                createBooking
+            );
+
+
+            console.log(
+                "Confirm Booking button connected successfully."
+            );
+
+        }
+
+        else {
+
+            console.error(
+                "ERROR: bookingSubmit button not found."
+            );
+
+        }
+
+
+        /* =========================
+           LOAD SEATS
+        ========================= */
+
+        loadSeats();
+
+
+        /* =========================
+           LOAD SUCCESS STUDENTS
+        ========================= */
+
+        loadSuccessStudents();
+
+    }
 );
-
-
-/* =========================================================
-   GLOBAL FUNCTIONS
-   ========================================================= */
-
-window.seats =
-  seats;
-
-window.selectSeat =
-  selectSeat;
-
-window.createBooking =
-  createBooking;
-
-window.openUpi =
-  openUpi;
-
-window.copyUpi =
-  copyUpi;
-
-window.markPaid =
-  markPaid;
-
-window.sendPaymentReceiptWhatsApp =
-  sendPaymentReceiptWhatsApp;
-
-window.resetBookingForm =
-  resetBookingForm;
-
-window.loadSuccessStudents =
-  loadSuccessStudents;
-
-window.scrollToSection =
-  scrollToSection;
 
 </script>
 
