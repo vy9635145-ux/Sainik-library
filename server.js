@@ -1,3 +1,4 @@
+
 require("dotenv").config();
 
 const express = require("express");
@@ -41,10 +42,12 @@ async function query(text, params = []) {
   return pool.query(text, params);
 }
 
+
 async function one(text, params = []) {
   const r = await query(text, params);
   return r.rows[0] || null;
 }
+
 
 async function all(text, params = []) {
   const r = await query(text, params);
@@ -146,6 +149,7 @@ async function initDb() {
     "SELECT id FROM admins WHERE username=$1",
     [adminUser]
   );
+
 
   if (!existing) {
     await query(
@@ -484,10 +488,10 @@ app.get("/api/payment/qr", async (req, res) => {
    PAYMENT STATUS:
 
       paid
-         -> RED / BOOKED
+          -> RED / BOOKED
 
       pending/submitted
-         -> ORANGE / PENDING
+          -> ORANGE / PENDING
 
    CANCELLED:
 
@@ -611,8 +615,10 @@ app.get("/api/seats", async (req, res) => {
         Both pending/submitted and paid bookings remain LOCKED.
         Only admin cancellation releases the seat.
       */
+
       const paymentStatus =
         String(row.payment_status || "").toLowerCase();
+
 
       if (paymentStatus === "paid") {
         booked.push(seatNumber);
@@ -630,6 +636,7 @@ app.get("/api/seats", async (req, res) => {
         )
       );
 
+
     res.json({
 
       totalSeats:
@@ -641,8 +648,10 @@ app.get("/api/seats", async (req, res) => {
         ...new Set(booked)
       ],
 
-      /* Pending/submitted payments are locked and shown ORANGE.
-         They remain unavailable until an admin cancels the booking. */
+      /*
+        Pending/submitted payments are locked and shown ORANGE.
+        They remain unavailable until an admin cancels the booking.
+      */
       pending: [
         ...new Set(pending)
       ]
@@ -1081,6 +1090,356 @@ app.delete(
 
 
 /* =========================================================
+   EDIT ACTIVE BOOKING - ADMIN
+   =========================================================
+
+   Admin can edit an existing ACTIVE booking.
+
+   Allowed changes:
+   - Date
+   - Plan
+   - Payment status
+
+   The following fields are NOT editable:
+   - Booking ID
+   - Student/customer name
+   - Father name
+   - Mobile
+   - Email
+   - Address
+   - Seat
+   - Shift
+
+   IMPORTANT:
+
+   Date does NOT control seat availability.
+
+   The seat remains locked until admin CANCELS the booking.
+
+   Monthly renewal example:
+
+   Current booking:
+      Date          = 2026-10-01
+      Plan          = Monthly
+      Payment       = paid
+
+   Next month:
+      Date          = 2026-11-01
+      Plan          = Monthly
+      Payment       = pending
+
+   After receiving the new payment:
+      Admin clicks Confirm Payment
+      Payment becomes paid.
+
+   ========================================================= */
+
+app.put(
+  "/api/bookings/:id",
+  auth,
+  async (req, res) => {
+
+    try {
+
+      /* -----------------------------------------------------
+         FIND EXISTING BOOKING
+         ----------------------------------------------------- */
+
+      const booking = await one(
+        `
+        SELECT *
+        FROM bookings
+        WHERE id=$1
+        `,
+        [req.params.id]
+      );
+
+
+      if (!booking) {
+
+        return res.status(404).json({
+          error: "Booking not found"
+        });
+
+      }
+
+
+      /* -----------------------------------------------------
+         CANCELLED BOOKING CANNOT BE EDITED
+         ----------------------------------------------------- */
+
+      if (booking.status === "cancelled") {
+
+        return res.status(400).json({
+          error:
+            "Cancelled booking cannot be edited"
+        });
+
+      }
+
+
+      const body = req.body || {};
+
+
+      /* -----------------------------------------------------
+         KEEP OLD VALUE IF FIELD IS NOT SENT
+         ----------------------------------------------------- */
+
+      const finalDate =
+        body.date !== undefined
+          ? String(body.date).trim()
+          : booking.date;
+
+
+      const finalPlan =
+        body.plan !== undefined
+          ? String(body.plan).trim()
+          : booking.plan;
+
+
+      const finalPaymentStatus =
+        body.paymentStatus !== undefined
+          ? String(
+              body.paymentStatus
+            ).trim().toLowerCase()
+          : String(
+              booking.payment_status ||
+              "pending"
+            ).toLowerCase();
+
+
+      /* -----------------------------------------------------
+         DATE VALIDATION
+         ----------------------------------------------------- */
+
+      if (
+        !/^\d{4}-\d{2}-\d{2}$/.test(
+          finalDate
+        )
+      ) {
+
+        return res.status(400).json({
+          error:
+            "Invalid date format. Use YYYY-MM-DD"
+        });
+
+      }
+
+
+      /*
+        Make sure the date is a real calendar date.
+      */
+
+      const parsedDate =
+        new Date(
+          `${finalDate}T00:00:00Z`
+        );
+
+
+      if (
+        Number.isNaN(
+          parsedDate.getTime()
+        ) ||
+        parsedDate
+          .toISOString()
+          .slice(0, 10) !== finalDate
+      ) {
+
+        return res.status(400).json({
+          error:
+            "Invalid date"
+        });
+
+      }
+
+
+      /* -----------------------------------------------------
+         PLAN VALIDATION
+         ----------------------------------------------------- */
+
+      const allowedPlans = [
+        "Daily",
+        "Monthly",
+        "Quarterly"
+      ];
+
+
+      if (
+        !allowedPlans.includes(
+          finalPlan
+        )
+      ) {
+
+        return res.status(400).json({
+          error:
+            "Invalid plan"
+        });
+
+      }
+
+
+      /* -----------------------------------------------------
+         PAYMENT STATUS VALIDATION
+         ----------------------------------------------------- */
+
+      const allowedPaymentStatuses = [
+        "pending",
+        "submitted",
+        "paid"
+      ];
+
+
+      if (
+        !allowedPaymentStatuses.includes(
+          finalPaymentStatus
+        )
+      ) {
+
+        return res.status(400).json({
+          error:
+            "Invalid payment status. Use pending, submitted or paid"
+        });
+
+      }
+
+
+      /* -----------------------------------------------------
+         PLAN AMOUNT
+         ----------------------------------------------------- */
+
+      const amount =
+        amountForPlan(
+          finalPlan
+        );
+
+
+      /* -----------------------------------------------------
+         PAYMENT INFORMATION
+         -----------------------------------------------------
+
+         paid:
+           Keep old payment information if already paid.
+           Otherwise create a new manual payment ID.
+
+         pending/submitted:
+           Clear old paid_at/payment_id.
+
+         This is required when a new monthly or quarterly
+         payment cycle starts.
+         ----------------------------------------------------- */
+
+      let paymentId =
+        booking.payment_id;
+
+      let paidAt =
+        booking.paid_at;
+
+
+      if (
+        finalPaymentStatus === "paid"
+      ) {
+
+        if (
+          String(
+            booking.payment_status
+          ).toLowerCase() !== "paid"
+        ) {
+
+          paymentId =
+            "MANUAL-UPI-" +
+            Date.now();
+
+          paidAt =
+            new Date().toISOString();
+
+        }
+
+      } else {
+
+        paymentId = null;
+        paidAt = null;
+
+      }
+
+
+      /* -----------------------------------------------------
+         UPDATE ONLY EDITABLE FIELDS
+         -----------------------------------------------------
+
+         Seat and shift are NOT changed.
+
+         Changing date DOES NOT release the seat.
+
+         Only cancellation releases the seat.
+         ----------------------------------------------------- */
+
+      await query(
+        `
+        UPDATE bookings
+        SET
+          date=$1,
+          plan=$2,
+          amount=$3,
+          payment_status=$4,
+          payment_id=$5,
+          paid_at=$6
+        WHERE id=$7
+        `,
+        [
+          finalDate,
+          finalPlan,
+          amount,
+          finalPaymentStatus,
+          paymentId,
+          paidAt,
+          booking.id
+        ]
+      );
+
+
+      /* -----------------------------------------------------
+         RETURN UPDATED BOOKING
+         ----------------------------------------------------- */
+
+      const updatedBooking =
+        await one(
+          `
+          SELECT *
+          FROM bookings
+          WHERE id=$1
+          `,
+          [booking.id]
+        );
+
+
+      res.json({
+        ok: true,
+        message:
+          "Active booking updated successfully",
+        booking:
+          updatedBooking
+      });
+
+
+    } catch (e) {
+
+      console.error(
+        "Edit booking error:",
+        e
+      );
+
+
+      res.status(500).json({
+        error:
+          "Could not update booking"
+      });
+
+    }
+  }
+);
+
+
+/* =========================================================
    CREATE BOOKING
    =========================================================
 
@@ -1366,6 +1725,7 @@ app.post(
         "Booking error:",
         e
       );
+
 
       res.status(500).json({
         error:
